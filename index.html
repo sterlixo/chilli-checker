@@ -41,7 +41,6 @@
             border-color: #007bff;
         }
         .custom-control-label svg {
-            width: 16px;
             height: 16px;
             vertical-align: text-bottom;
         }
@@ -107,10 +106,15 @@
             90% { transform: translateX(-2px); }
         }
         
+        /* Cloudflare Auth Overlay */
+        #cf-auth-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10000; display: flex; align-items: center; justify-content: center; }
+        #cf-auth-box { background: #2d2d2d; padding: 40px; border-radius: 10px; text-align: center; max-width: 400px; }
+        #cf-auth-box h3 { color: #fff; margin-bottom: 20px; }
+        #cf-auth-box p { color: #ccc; margin-bottom: 30px; }
 
     </style>
     <!-- Content Security Policy -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; frame-src 'self' https://coolqoo-ain8n.hf.space/; script-src 'self' 'unsafe-inline' 'nonce-nonceinjector' https://cdnjs.cloudflare.com https://www.clarity.ms https://cdn.jsdelivr.net https://cdn.clarity.ms; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com https://cdn.jsdelivr.net; img-src 'self' data: https://chilli.cc https://cdn.jsdelivr.net; connect-src 'self' https://api.chilli.cc https://api.stripe.com https://*.myshopify.com https://www.clarity.ms wss://www.clarity.ms wss://*.clarity.ms; font-src 'self' https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; frame-src 'self' https://coolqoo-ain8n.hf.space/ https://challenges.cloudflare.com; script-src 'self' 'unsafe-inline' 'nonce-nonceinjector' https://cdnjs.cloudflare.com https://www.clarity.ms https://cdn.jsdelivr.net https://cdn.clarity.ms https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com https://cdn.jsdelivr.net; img-src 'self' data: https://chilli.cc https://cdn.jsdelivr.net; connect-src 'self' https://api.chilli.cc https://api.stripe.com https://*.myshopify.com https://www.clarity.ms wss://www.clarity.ms wss://*.clarity.ms https://challenges.cloudflare.com; font-src 'self' https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com;">
     <!-- Nonce Injector Script (fixed nonce) -->
     <script nonce="nonceinjector">
       (function() {
@@ -141,6 +145,8 @@
     <script data-requirenonce src="assets/js/api-test.js"></script>
     <!-- Theme Toggle Script -->
     <script data-requirenonce src="assets/js/theme-toggle.js"></script>
+    <!-- Cloudflare Turnstile -->
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <script type="application/ld+json">
         {
             "@context": "https://schema.org",
@@ -159,6 +165,15 @@
 </head>
 
 <body class="template-color-1 spybody" data-spy="scroll" data-target=".navbar-example2" data-offset="70">
+
+    <!-- Cloudflare Auth Overlay -->
+    <div id="cf-auth-overlay">
+        <div id="cf-auth-box">
+            <h3>🔒 Security Verification</h3>
+            <p>Please complete the security check to access chilli.cc</p>
+            <div class="cf-turnstile" data-sitekey="0x4AAAAAABok5SXyAhQcOyIX" data-callback="onTurnstileSuccess"></div>
+        </div>
+    </div>
 
     <!-- Start Header -->
     <header class="rn-header haeder-default black-logo-version header--fixed header--sticky" aria-label="Main header">
@@ -705,7 +720,7 @@ $.post("https://api.chilli.cc/", {
                                         <div class="heading">
                                             <div class="title">
                                                 <h4>v2.0.1</h4>
-                                                <time datetime="2025-01-03">2025-01-03</time>
+                                                <time datetime="2025-06-24">2025-06-24</time>
                                             </div>
                                         </div>
                                         <p class="description">
@@ -724,7 +739,7 @@ $.post("https://api.chilli.cc/", {
                                         <div class="heading">
                                             <div class="title">
                                                 <h4>v1.3.0</h4>
-                                                <time datetime="2025-06-24">2025-06-24</time>
+                                                <time datetime="2025-01-15">2025-01-15</time>
                                             </div>
                                         </div>
                                         <p class="description">
@@ -932,6 +947,11 @@ $.post("https://api.chilli.cc/", {
     <script src="assets/js/generator.js"></script>
     <script src="assets/js/ccvalidator-bridge.js"></script>
     <script>
+        // Cloudflare Turnstile callback
+        function onTurnstileSuccess(token) {
+            $('#cf-auth-overlay').fadeOut(500);
+        }
+        
         // Initialize feather icons after DOM load
         $(document).ready(function() {
             feather.replace();
