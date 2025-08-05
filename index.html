@@ -4,20 +4,20 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>Best Free Credit Card Checker Validator Ever | CHILLI HUB</title>
+    <title>Best Free Credit Card Checker Validator Ever | chilli.cc</title>
     <meta name="description"
         content="Free online credit card bulk checker and validator. Fast, secure, and reliable tool for validating credit card numbers with advanced features and API support.">
     <meta name="keywords"
         content="credit card checker, card validator, bulk checker, credit card validation, bin checker, free card checker">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="robots" content="index, follow">
-    <meta property="og:title" content="Best Free Credit Card Checker Validator Ever | CHILLI HUB">
+    <meta property="og:title" content="Best Free Credit Card Checker Validator Ever | chilli.cc">
     <meta property="og:description"
         content="Free online credit card bulk checker and validator. Fast, secure, and reliable tool for validating credit card numbers.">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://chillihub.netlify.app/">
+    <meta property="og:url" content="https://chilli.cc/">
     <meta property="og:image" content="assets/images/logo/logo-chkr.png">
-    <link rel="canonical" href="https://chillihub.netlify.app/">
+    <link rel="canonical" href="https://chilli.cc/">
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="assets/images/favicon.ico">
     <!-- CSS 
@@ -26,8 +26,91 @@
     <link rel="stylesheet" href="assets/css/plugins/feature.css">
     <!-- Style css -->
     <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        .custom-control-label {
+            color: #f8f9fa;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .custom-control-label:before {
+            background-color: #343a40;
+            border: 1px solid #6c757d;
+        }
+        .custom-control-input:checked ~ .custom-control-label:before {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        .custom-control-label svg {
+            width: 16px;
+            height: 16px;
+            vertical-align: text-bottom;
+        }
+        
+        /* Theme Styles */
+        body.dark-mode { background: #1a1a1a; color: #fff; }
+        body.dark-mode .rn-header { background: #2d2d2d; }
+        body.snow-mode { background: #1a1a1a; color: #fff; }
+        body.snow-mode .rn-header { background: #2d2d2d; }
+        
+        /* Fancy Snowfall */
+        .snowflake { position: fixed; top: -10px; z-index: 1; color: #fff; font-size: 12px; animation: snowfall linear infinite; pointer-events: none; text-shadow: 0 0 5px rgba(255,255,255,0.8); }
+        @keyframes snowfall { 
+            0% { transform: translateY(-10px) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+
+        
+        /* Theme notification */
+        .theme-notification { position: fixed; top: 70px; right: 10px; background: #007bff; color: white; padding: 8px 12px; border-radius: 4px; font-size: 12px; z-index: 9999; opacity: 0; transition: opacity 0.3s; }
+        .theme-notification.show { opacity: 1; }
+        
+        /* Bubble name animation */
+        .bubble-name { 
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-weight: bold;
+            animation: bubbleColor 1s infinite, bubblePulse 2s ease-in-out infinite;
+            box-shadow: 0 0 20px rgba(255,255,255,0.3);
+        }
+        @keyframes bubbleColor {
+            0% { background: #ff6b6b; color: white; }
+            16% { background: #4ecdc4; color: white; }
+            33% { background: #45b7d1; color: white; }
+            50% { background: #96ceb4; color: white; }
+            66% { background: #feca57; color: black; }
+            83% { background: #ff9ff3; color: white; }
+            100% { background: #ff6b6b; color: white; }
+        }
+        @keyframes bubblePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        /* Shake animation */
+        .bubble-name { cursor: pointer; }
+        .shake-ui {
+            animation: shakeAll 0.8s ease-in-out;
+        }
+        @keyframes shakeAll {
+            0%, 100% { transform: translateX(0); }
+            10% { transform: translateX(-10px) rotate(-1deg); }
+            20% { transform: translateX(10px) rotate(1deg); }
+            30% { transform: translateX(-8px) rotate(-1deg); }
+            40% { transform: translateX(8px) rotate(1deg); }
+            50% { transform: translateX(-6px) rotate(-0.5deg); }
+            60% { transform: translateX(6px) rotate(0.5deg); }
+            70% { transform: translateX(-4px) rotate(-0.5deg); }
+            80% { transform: translateX(4px) rotate(0.5deg); }
+            90% { transform: translateX(-2px); }
+        }
+        
+
+    </style>
     <!-- Content Security Policy -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'nonce-nonceinjector' https://cdnjs.cloudflare.com https://www.clarity.ms; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com https://cdn.jsdelivr.net; img-src 'self' data: https://chillihub.netlify.app https://cdn.jsdelivr.net; connect-src 'self' https://api.chillihub.netlify.app https://www.clarity.ms; font-src 'self' https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; frame-src 'self' https://coolqoo-ain8n.hf.space/; script-src 'self' 'unsafe-inline' 'nonce-nonceinjector' https://cdnjs.cloudflare.com https://www.clarity.ms https://cdn.jsdelivr.net https://cdn.clarity.ms; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com https://cdn.jsdelivr.net; img-src 'self' data: https://chilli.cc https://cdn.jsdelivr.net; connect-src 'self' https://api.chilli.cc https://api.stripe.com https://*.myshopify.com https://www.clarity.ms wss://www.clarity.ms wss://*.clarity.ms; font-src 'self' https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com;">
     <!-- Nonce Injector Script (fixed nonce) -->
     <script nonce="nonceinjector">
       (function() {
@@ -42,13 +125,29 @@
     </script>
     <!-- Privacy Notice Banner -->
     <script data-requirenonce src="assets/js/privacy.js"></script>
+    <!-- BIN Database -->
+    <script data-requirenonce src="assets/js/bin-database.js"></script>
+    <!-- Stripe Validator -->
+    <script data-requirenonce src="assets/js/stripe-validator.js"></script>
+    <!-- Stripe Fallback -->
+    <script data-requirenonce src="assets/js/stripe-fallback.js"></script>
+    <!-- Shopify Validator -->
+    <script data-requirenonce src="assets/js/shopify-validator.js"></script>
+    <!-- Shopify Fallback -->
+    <script data-requirenonce src="assets/js/shopify-fallback.js"></script>
+    <!-- Real API Validator (prioritizes actual API calls) -->
+    <script data-requirenonce src="assets/js/real-api-validator.js"></script>
+    <!-- API Test Script (for development) -->
+    <script data-requirenonce src="assets/js/api-test.js"></script>
+    <!-- Theme Toggle Script -->
+    <script data-requirenonce src="assets/js/theme-toggle.js"></script>
     <script type="application/ld+json">
         {
             "@context": "https://schema.org",
             "@type": "WebApplication",
-            "name": "CHILLI HUB - Credit Card Checker",
+            "name": "chilli.cc - Credit Card Checker",
             "description": "Free online credit card bulk checker and validator",
-            "url": "https://chillihub.netlify.app",
+            "url": "https://chilli.cc/",
             "applicationCategory": "Utility",
             "offers": {
                 "@type": "Offer",
@@ -60,6 +159,7 @@
 </head>
 
 <body class="template-color-1 spybody" data-spy="scroll" data-target=".navbar-example2" data-offset="70">
+
     <!-- Start Header -->
     <header class="rn-header haeder-default black-logo-version header--fixed header--sticky" aria-label="Main header">
         <div class="header-wrapper rn-popup-mobile-menu m--0 row align-items-center">
@@ -67,8 +167,8 @@
             <div class="col-lg-2 col-6">
                 <div class="header-left">
                     <div class="logo">
-                        <a href="https://chillihub.netlify.app/">
-                            <img src="assets/images/logo/logo-chkr.png" alt="CHILLI HUB Credit Card Checker Logo">
+                        <a href="javascript:location.reload();">
+                            <img src="assets/images/logo/logo-chkr.png" alt="chilli.cc Credit Card Checker Logo">
                         </a>
                     </div>
                 </div>
@@ -91,14 +191,9 @@
                     </nav>
                     <!-- Start Header Right  -->
                     <div class="header-right">
-                        <div class="hamberger-menu d-block d-xl-none">
-                            <i id="menuBtn" class="feather-menu humberger-menu" aria-label="Open menu"></i>
-                        </div>
-                        <div class="close-menu d-block">
-                            <span class="closeTrigger">
-                                <i data-feather="x" aria-label="Close menu"></i>
-                            </span>
-                        </div>
+                        <button id="theme-toggle" class="rn-btn" aria-label="Toggle theme">🌙 Theme</button>
+                        <div id="theme-notification" class="theme-notification"></div>
+
                     </div>
                     <!-- End Header Right  -->
 
@@ -113,14 +208,14 @@
         <div class="inner">
             <div class="menu-top">
                 <div class="menu-header">
-                    <a class="logo" href="index.html">
-                        <img src="assets/images/logo/logo-circle.png" alt="CHILLI HUB Circle Logo">
+                    <a class="logo" href="javascript:location.reload();">
+                        <img src="assets/images/logo/logo-circle.png" alt="chilli.cc Circle Logo">
                     </a>
                     <div class="close-button">
                         <button class="close-menu-activation close" aria-label="Close mobile menu"><i data-feather="x"></i></button>
                     </div>
                 </div>
-                <p class="discription">CHILLI HUB is the best free credit card checker/validator ever</p>
+                <p class="discription">chilli.cc is the best free credit card checker/validator ever</p>
             </div>
             <div class="content">
                 <ul class="primary-menu nav nav-pills">
@@ -134,7 +229,7 @@
                 <div class="social-share-style-1 mt--40">
                     <span class="title">Connect with us</span>
                     <ul class="social-share d-flex liststyle">
-                        <li class="telegram"><a href="https://github.com/sterlixo" target="_blank" rel="noopener"><i
+                        <li class="telegram"><a href="https://github.com/sterlixo" target="_blank" rel="noopener noreferrer"><i
                                     data-feather="send"></i></a>
                         </li>
                     </ul>
@@ -149,7 +244,7 @@
         <!-- Add invisible H1 for SEO -->
         <h1
             style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0;">
-            Free Credit Card Checker and Validator | CHILLI HUB
+            Free Credit Card Checker and Validator | chilli.cc
         </h1>
 
         <!-- Start Slider Area -->
@@ -176,9 +271,21 @@
                                                 title="Credit Card Information"
                                                 placeholder="4552250055368xx3|08|2026|113" required="required" cols="20"
                                                 rows="15"></textarea>
-                                            <div class="mt-3 d-none">
-                                                <input type="checkbox" id="gate2">
-                                                <label for="gate2">Use Charge Gate (BETA)</label>
+                                            <div class="mt-3">
+                                                <div class="custom-control custom-checkbox">
+                                                    <input type="checkbox" class="custom-control-input" id="gate2">
+                                                    <label class="custom-control-label" for="gate2">
+                                                        <i data-feather="zap" class="mr-2"></i>Stripe Gate (Real Validation)
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="mt-2">
+                                                <div class="custom-control custom-checkbox">
+                                                    <input type="checkbox" class="custom-control-input" id="gate3">
+                                                    <label class="custom-control-label" for="gate3">
+                                                        <i data-feather="shopping-bag" class="mr-2"></i>Shopify Gate ($1 Auth)
+                                                    </label>
+                                                </div>
                                             </div>
                                             <div class="mt-3 d-none">
                                                 <input type="checkbox" id="stripe">
@@ -417,7 +524,7 @@
                                 </div>
                                 <h3 class="title mt-5">Endpoint</h3>
                                 <div class="mono-text bg-dark p-3 rounded">
-                                    <code>POST https://api.chillihub.netlify.app/</code>
+                                    <code>POST https://api.chilli.cc/</code>
                                 </div>
                                 <h3 class="title mt-5">Request Format</h3>
                                 <div class="mono-text bg-dark p-3 rounded">
@@ -453,7 +560,7 @@
                                 <h3 class="title mt-5">Example Usage</h3>
                                 <div class="mono-text bg-dark p-3 rounded">
                                     <pre><code>// Using jQuery
-$.post("https://api.chillihub.netlify.app/", {
+$.post("https://api.chilli.cc/", {
     data: "4242424242424242|12|2030|123"
 }, function(response) {
     const result = JSON.parse(response);
@@ -502,20 +609,75 @@ $.post("https://api.chillihub.netlify.app/", {
                         <div class="section-title text-center" data-aos="fade-up" data-aos-duration="500"
                             data-aos-delay="100" data-aos-once="true">
                             <span class="subtitle">Support</span>
-                            <h2 class="title">Need Help?</h2>
+                            <h2 class="title">Human-Crafted Development Excellence</h2>
                         </div>
                     </div>
                 </div>
-                <div class="row mt--30 justify-content-center">
-                    <div class="col-lg-2 col-md-3 col-5 mt--30">
-                        <button class="rn-btn w-100" data-toggle="modal" data-target="#support-modal">
-                            <span><i data-feather="help-circle" class="mr-2"></i>Support</span>
-                        </button>
-                    </div>
-                    <div class="col-lg-2 col-md-3 col-5 mt--30">
-                        <a href="https://github.com/sterlixo" target="_blank" class="rn-btn w-100">
-                            <span><i data-feather="send" class="mr-2"></i>Contact</span>
-                        </a>
+                <div class="row mt--50">
+                    <div class="col-lg-12">
+                        <div class="rn-pricing">
+                            <div class="pricing-body">
+                                <h3 class="title">How We Built This Platform</h3>
+                                <div class="p-3 rounded">
+                                    <p class="description">
+                                        This credit card validation platform was meticulously crafted by <strong>developer <span class="bubble-name">sterlin</span></strong>, 
+                                        countless hours of manual coding, testing, and optimization to deliver reliable performance and advanced features.
+                                    </p>
+                                </div>
+                                <h3 class="title mt-5">Hand-Crafted Development Features</h3>
+                                <div class="row mt--30">
+                                    <div class="col-lg-6 col-md-6 col-12 mt--30">
+                                        <div class="rn-service">
+                                            <div class="inner">
+                                                <div class="icon"><i data-feather="code"></i></div>
+                                                <div class="content">
+                                                    <h4 class="title">Manual API Integration</h4>
+                                                    <p class="description">Carefully coded Stripe and Shopify validation with custom retry logic and thorough error handling.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-6 col-12 mt--30">
+                                        <div class="rn-service">
+                                            <div class="inner">
+                                                <div class="icon"><i data-feather="moon"></i></div>
+                                                <div class="content">
+                                                    <h4 class="title">Custom Theme System</h4>
+                                                    <p class="description">Handwritten dual theme implementation with manually crafted dark mode and snow animations.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-6 col-12 mt--30">
+                                        <div class="rn-service">
+                                            <div class="inner">
+                                                <div class="icon"><i data-feather="shield"></i></div>
+                                                <div class="content">
+                                                    <h4 class="title">Security by Design</h4>
+                                                    <p class="description">Manually implemented CSP policies and security measures through careful human review.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-6 col-12 mt--30">
+                                        <div class="rn-service">
+                                            <div class="inner">
+                                                <div class="icon"><i data-feather="zap"></i></div>
+                                                <div class="content">
+                                                    <h4 class="title">Performance Tuning</h4>
+                                                    <p class="description">Hand-optimized validation algorithms and UI components through extensive testing and refinement.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="text-center mt--50">
+                                    <a href="https://github.com/sterlixo" target="_blank" class="rn-btn">
+                                        <span><i data-feather="github" class="mr-2"></i>View Developer Profile</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -537,6 +699,25 @@ $.post("https://api.chillihub.netlify.app/", {
                     <div class="col-lg-8 offset-lg-2">
                         <div class="personal-experience-inner">
                             <div class="experience-list">
+                                <!-- Start Single List  -->
+                                <div class="resume-single-list">
+                                    <div class="inner">
+                                        <div class="heading">
+                                            <div class="title">
+                                                <h4>v2.0.1</h4>
+                                                <time datetime="2025-01-03">2025-01-03</time>
+                                            </div>
+                                        </div>
+                                        <p class="description">
+                                            - Enhanced real API validation with retry logic and improved error handling.<br>
+                                            - Added dual theme system with dark mode and animated snow mode.<br>
+                                            - Implemented theme notifications with smooth transitions.<br>
+                                            - Optimized Stripe and Shopify validation functions for better accuracy.<br>
+                                            - Streamlined header interface by removing unnecessary navigation elements.
+                                        </p>
+                                    </div>
+                                </div>
+                                <!-- End Single List  -->
                                 <!-- Start Single List  -->
                                 <div class="resume-single-list">
                                     <div class="inner">
@@ -712,24 +893,7 @@ $.post("https://api.chillihub.netlify.app/", {
             </div>
         </div>
 
-        <!-- Support Modal -->
-        <div class="modal fade" id="support-modal" tabindex="-1" role="dialog" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Support</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true"><i data-feather="x"></i></span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <iframe src="https://coolqoo-ain8n.hf.space/webhook/b460c4a4-be19-416a-82fe-7a874a35c6ad/chat"
-                            style="width: 100%; height: 100%; min-height: 700px" frameborder="0" allow="microphone">
-                        </iframe>
-                    </div>
-                </div>
-            </div>
-        </div>
+
         <!-- Start Modal area-->
         <!-- End Modal area -->
         <!-- Back to top Start -->
@@ -749,7 +913,7 @@ $.post("https://api.chillihub.netlify.app/", {
                 <div class="col-lg-12">
                     <div class="footer-area text-center">
                         <p class="description mt--30"><span id="copyright"></span> © All rights reserved by <a
-                                href="https://chillihub.netlify.app">CHILLI HUB</a></p>
+                                href="https://chilli.cc/">chilli.cc</a></p>
                     </div>
                 </div>
             </div>
@@ -761,11 +925,50 @@ $.post("https://api.chillihub.netlify.app/", {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="assets/js/vendor/feather.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.5.3/js/bootstrap.min.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js"></script>
     <!-- main JS -->
     <script src="assets/js/main.js"></script>
-    <script src="assets/js/generator.js"></script>
     <script src="assets/js/script.js"></script>
+    <script src="assets/js/generator.js"></script>
     <script src="assets/js/ccvalidator-bridge.js"></script>
+    <script>
+        // Initialize feather icons after DOM load
+        $(document).ready(function() {
+            feather.replace();
+            
+            // Add visual feedback for Gate2 checkbox
+            $('#gate2').on('change', function() {
+                const label = $(this).next('label');
+                if ($(this).is(':checked')) {
+                    $('#gate3').prop('checked', false).next('label').removeClass('text-success');
+                    label.addClass('text-primary');
+                    console.log('Stripe Gate enabled');
+                } else {
+                    label.removeClass('text-primary');
+                    console.log('Stripe Gate disabled');
+                }
+            });
+            
+            // Add visual feedback for Gate3 (Shopify) checkbox
+            $('#gate3').on('change', function() {
+                const label = $(this).next('label');
+                if ($(this).is(':checked')) {
+                    $('#gate2').prop('checked', false).next('label').removeClass('text-primary');
+                    label.addClass('text-success');
+                    console.log('Shopify Gate enabled');
+                } else {
+                    label.removeClass('text-success');
+                    console.log('Shopify Gate disabled');
+                }
+            });
+            
+            // Shake UI when name is clicked
+            $('.bubble-name').on('click', function() {
+                $('body').addClass('shake-ui');
+                setTimeout(() => $('body').removeClass('shake-ui'), 800);
+            });
+        });
+    </script>
     <!-- Microsoft Clarity (analytics) -->
     <script async src="https://www.clarity.ms/tag/kz52ka5m27"></script>
 </body>

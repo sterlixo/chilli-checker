@@ -50,30 +50,77 @@ $(function() {
         }
     }
 
-    // Start validation (local, not server)
+    // Start validation (local or Stripe)
     $startBtn.on('click', function() {
-        // If gate2 is checked, skip (let backend handle)
-        if ($('#gate2').is(':checked')) return;
         resetTabs();
         const cards = $ccInput.val().split('\n').map(l => l.trim()).filter(Boolean);
         if (!cards.length) return;
+        
         $startBtn.prop('disabled', true);
         $ccInput.prop('disabled', true);
         $stopBtn.prop('disabled', false).show();
         $startBtn.hide();
         $progressModal.modal({ backdrop: 'static', keyboard: false });
-        validator.isProcessing = true;
-        validator.processBatch(
-            cards,
+        
+        // Choose validator based on gate checkboxes - prioritize real API
+        const useStripe = $('#gate2').is(':checked');
+        const useShopify = $('#gate3').is(':checked');
+        let activeValidator = validator;
+        let validationMethod = 'local';
+        
+        if (useShopify || useStripe) {
+            // Use RealApiValidator for both Stripe and Shopify
+            if (typeof RealApiValidator !== 'undefined') {
+                activeValidator = new RealApiValidator();
+                validationMethod = useShopify ? 'shopify' : 'stripe';
+                console.log(`Using Real API validator with ${validationMethod} method`);
+            } else {
+                // Fallback to old validators only if RealApiValidator unavailable
+                if (useShopify) {
+                    if (typeof ShopifyValidator !== 'undefined') {
+                        activeValidator = new ShopifyValidator();
+                        console.log('Using Shopify validator');
+                    } else if (typeof ShopifyFallback !== 'undefined') {
+                        activeValidator = new ShopifyFallback();
+                        console.log('Using Shopify fallback validator');
+                    }
+                } else if (useStripe) {
+                    if (typeof StripeValidator !== 'undefined') {
+                        activeValidator = new StripeValidator();
+                    } else if (typeof StripeFallback !== 'undefined') {
+                        activeValidator = new StripeFallback();
+                        console.log('Using Stripe fallback validator');
+                    }
+                }
+            }
+        }
+        
+        activeValidator.isProcessing = true;
+        
+        // Pass validation method to RealApiValidator
+        const processBatchArgs = [cards,
             function(stats) {
                 const percent = Math.floor((stats.processed / stats.total) * 100);
                 $progressBar.width(percent + '%');
                 $percentLabel.text(percent + '%');
+                
+                // Show API success rate for RealApiValidator
+                if (stats.apiSuccess !== undefined) {
+                    const apiRate = stats.processed > 0 ? Math.round((stats.apiSuccess / stats.processed) * 100) : 0;
+                    $percentLabel.text(`${percent}% (${apiRate}% Real API)`);
+                }
             },
             function(result) {
                 addResult(result);
             }
-        ).then(() => {
+        ];
+        
+        // Add validation method for RealApiValidator
+        if (activeValidator instanceof RealApiValidator) {
+            processBatchArgs.push(validationMethod);
+        }
+        
+        activeValidator.processBatch(...processBatchArgs).then(() => {
             $startBtn.prop('disabled', false).show();
             $ccInput.prop('disabled', false);
             $stopBtn.prop('disabled', true).hide();
@@ -85,6 +132,21 @@ $(function() {
     // Stop validation
     $stopBtn.on('click', function() {
         validator.stopProcessing();
+        
+        // Stop all possible validators
+        if (typeof RealApiValidator !== 'undefined') {
+            const realValidator = new RealApiValidator();
+            realValidator.stopProcessing();
+        }
+        if (typeof StripeValidator !== 'undefined') {
+            const stripeValidator = new StripeValidator();
+            stripeValidator.stopProcessing();
+        }
+        if (typeof ShopifyValidator !== 'undefined') {
+            const shopifyValidator = new ShopifyValidator();
+            shopifyValidator.stopProcessing();
+        }
+        
         $stopBtn.prop('disabled', true).hide();
         $startBtn.prop('disabled', false).show();
         $ccInput.prop('disabled', false);

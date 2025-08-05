@@ -1,0 +1,26 @@
+[build]
+  functions = "netlify/functions"
+  publish = "."
+
+[functions]
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+[dev]
+  functions = "netlify/functions"
+  publish = "."
+
+# Environment variables for development
+[context.dev.environment]
+  STRIPE_SECRET_KEY = "sk_test_51OaKZTKqZ8QjQX0X1234567890abcdefghijklmnopqrstuvwxyz"
+  SHOPIFY_DOMAIN = "test-store-chilli.myshopify.com"
+  SHOPIFY_ACCESS_TOKEN = "shpat_test_1234567890abcdefghijklmnopqrstuvwxyz"
+  NODE_ENV = "development"
+
+# Environment variables for production
+[context.production.environment]
+  NODE_ENV = "production"

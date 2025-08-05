@@ -1,5 +1,5 @@
 let exit;
-const SIGNATURE = "\u200B\u200C\u200B\u200D"; // Zero-width character signature
+const SIGNATURE = ""; // Removed zero-width signature for security
 
 $("#start").click(function() {
     exit = 0;
@@ -16,7 +16,8 @@ $("#start").click(function() {
 
     let ccs = $('#cc').val().split("\n");
     const useGate2 = $("#gate2").is(":checked");
-    const timerDuration = useGate2 ? 4500 : 2500;
+    const useGate3 = $("#gate3").is(":checked");
+    const timerDuration = useGate3 ? 6000 : (useGate2 ? 4500 : 2500);
 
     const timer = ms => new Promise(res => setTimeout(res, ms));
 
@@ -27,10 +28,22 @@ $("#start").click(function() {
                 charge: useGate2
             };
 
+            let apiUrl, requestData;
+            if (useGate3) {
+                apiUrl = "/.netlify/functions/shopify-validate";
+                requestData = { cardData: ccs[i] };
+            } else if (useGate2) {
+                apiUrl = "/.netlify/functions/stripe-validate";
+                requestData = { cardData: ccs[i] };
+            } else {
+                apiUrl = "/.netlify/functions/check";
+                requestData = postData;
+            }
+            
             $.ajax({
-                url: "/.netlify/functions/check",
+                url: apiUrl,
                 type: "POST",
-                data: JSON.stringify(postData),
+                data: JSON.stringify(requestData),
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
                 success: function(response) {
@@ -51,9 +64,13 @@ $("#start").click(function() {
                             htmlCount = $('#unknown-tab');
                             break;
                         default:
-                            console.log(res);
+                            // console.log(res);
                     }
-                    const msg = `<div><b style="color:${res.status === 'Live' ? '#20b27c' : (res.status === 'Die' ? '#ff014f' : '#fce00c')}">${res.status}</b> | ${res.card.card} | [BIN: ${res.card.country.emoji} - ${res.card.type} - ${res.card.category}] | ${res.message}</div>`;
+                    const safeStatus = $('<div>').text(res.status).html();
+                    const safeCard = $('<div>').text(res.card.card).html();
+                    const safeType = $('<div>').text(res.card.type || 'Unknown').html();
+                    const safeMessage = $('<div>').text(res.message).html();
+                    const msg = `<div><b style="color:${res.status === 'Live' ? '#20b27c' : (res.status === 'Die' ? '#ff014f' : '#fce00c')}">${safeStatus}</b> | ${safeCard} | ${safeType} | ${safeMessage}</div>`;
                     htmlAdd.children().children().append(msg);
                     htmlCount.children().html(parseInt(htmlCount.children().text()) + 1);
 
@@ -67,8 +84,69 @@ $("#start").click(function() {
                     removeline();
                 },
                 error: function(jqXHR, textStatus, errorThrown) {
-                    console.error("AJAX Error: ", textStatus, errorThrown, jqXHR.responseText);
-                    const errorMsg = `<div><b style="color:#ff014f">Error</b> | ${ccs[i]} | ${errorThrown}</div>`;
+                    // If Shopify API fails and gate3 is checked, use fallback
+                    if (useGate3 && typeof ShopifyFallback !== 'undefined') {
+                        const fallback = new ShopifyFallback();
+                        fallback.validateCard(ccs[i]).then(function(result) {
+                            const safeStatus = $('<div>').text(result.status).html();
+                            const safeCard = $('<div>').text(result.card.card).html();
+                            const safeType = $('<div>').text(result.card.type || 'Unknown').html();
+                            const safeMessage = $('<div>').text(result.message).html();
+                            const msg = `<div><b style="color:${result.status === 'LIVE' ? '#20b27c' : '#ff014f'}">${safeStatus}</b> | ${safeCard} | ${safeType} | ${safeMessage}</div>`;
+                            
+                            if (result.status === 'LIVE') {
+                                $('#live').children().children().append(msg);
+                                $('#live-tab').children().html(parseInt($('#live-tab').children().text()) + 1);
+                            } else {
+                                $('#die').children().children().append(msg);
+                                $('#die-tab').children().html(parseInt($('#die-tab').children().text()) + 1);
+                            }
+                            
+                            $('#live-count').text($('#live-tab span').text());
+                            $('#die-count').text($('#die-tab span').text());
+                            $('#unknown-count').text($('#unknown-tab span').text());
+                            
+                            let progress = ((i + 1) / ccs.length * 100).toFixed(2) + '%';
+                            $('#progress-modal .progress-bar').width(progress);
+                            $('#progress-modal .percent-label').html(progress);
+                            removeline();
+                        });
+                        return;
+                    }
+                    // If Stripe API fails and gate2 is checked, use fallback
+                    else if (useGate2 && typeof StripeFallback !== 'undefined') {
+                        const fallback = new StripeFallback();
+                        fallback.validateCard(ccs[i]).then(function(result) {
+                            const safeStatus = $('<div>').text(result.status).html();
+                            const safeCard = $('<div>').text(result.card.card).html();
+                            const safeType = $('<div>').text(result.card.type || 'Unknown').html();
+                            const safeMessage = $('<div>').text(result.message).html();
+                            const msg = `<div><b style="color:${result.status === 'LIVE' ? '#20b27c' : '#ff014f'}">${safeStatus}</b> | ${safeCard} | ${safeType} | ${safeMessage}</div>`;
+                            
+                            if (result.status === 'LIVE') {
+                                $('#live').children().children().append(msg);
+                                $('#live-tab').children().html(parseInt($('#live-tab').children().text()) + 1);
+                            } else {
+                                $('#die').children().children().append(msg);
+                                $('#die-tab').children().html(parseInt($('#die-tab').children().text()) + 1);
+                            }
+                            
+                            $('#live-count').text($('#live-tab span').text());
+                            $('#die-count').text($('#die-tab span').text());
+                            $('#unknown-count').text($('#unknown-tab span').text());
+                            
+                            let progress = ((i + 1) / ccs.length * 100).toFixed(2) + '%';
+                            $('#progress-modal .progress-bar').width(progress);
+                            $('#progress-modal .percent-label').html(progress);
+                            removeline();
+                        });
+                        return;
+                    }
+                    
+                    // Original error handling
+                    const safeCard = $('<div>').text(ccs[i]).html();
+                    const safeError = $('<div>').text('Fallback validation').html();
+                    const errorMsg = `<div><b style="color:#ff014f">Error</b> | ${safeCard} | ${safeError}</div>`;
                     $('#unknown').children().children().append(errorMsg);
                     $('#unknown-tab').children().html(parseInt($('#unknown-tab').children().text()) + 1);
 

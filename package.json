@@ -1,0 +1,25 @@
+{
+  "name": "chilli-cc-validator",
+  "version": "1.0.0",
+  "description": "Credit Card Validator with Stripe Integration",
+  "main": "index.js",
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "echo 'No build step required'",
+    "deploy": "netlify deploy --prod"
+  },
+  "dependencies": {
+    "stripe": "^14.25.0"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  },
+  "keywords": [
+    "credit-card",
+    "validator",
+    "stripe",
+    "payment"
+  ],
+  "author": "chilli.cc",
+  "license": "MIT"
+}

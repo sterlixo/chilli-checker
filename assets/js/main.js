@@ -2,11 +2,12 @@
     'use strict';
 
     function checkDomain() {
-        const allowedDomain = 'chillihub';
         const currentDomain = window.location.hostname;
-
-        if (currentDomain !== allowedDomain && currentDomain !== 'localhost' && currentDomain !== '127.0.0.1') {
-            window.location.href = `https://${allowedDomain}`;
+        const primaryDomain = 'chilli.cc';
+        const allowedHosts = ['localhost', '127.0.0.1', primaryDomain];
+        // Allow Netlify deploy domains
+        if (!allowedHosts.includes(currentDomain) && !currentDomain.endsWith('.netlify.app')) {
+            window.location.href = `https://${primaryDomain}`;
         }
     }
 
@@ -49,7 +50,7 @@
                 _self.closest('div').find('button[type="submit"]').attr('disabled', 'disabled');
                 var data = $(this).serialize();
                 $.ajax({
-                    url: 'http://localhost:5000/contact',
+                    url: '/.netlify/functions/contact',
                     type: "post",
                     dataType: 'json',
                     data: data,
@@ -57,11 +58,13 @@
                         _self.closest('div').find('button[type="submit"]').removeAttr('disabled');
                         if (data.code == false) {
                             _self.closest('div').find('[name="' + data.field + '"]');
-                            _self.find('.rn-btn').after('<div class="error-msg"><p>*' + data.err + '</p></div>');
+                            const safeError = $('<div>').text(data.err).html();
+                            _self.find('.rn-btn').after('<div class="error-msg"><p>*' + safeError + '</p></div>');
                         } else {
                             $('.error-msg').hide();
                             $('.form-group').removeClass('focused');
-                            _self.find('.rn-btn').after('<div class="success-msg"><p>' + data.success + '</p></div>');
+                            const safeSuccess = $('<div>').text(data.success).html();
+                            _self.find('.rn-btn').after('<div class="success-msg"><p>' + safeSuccess + '</p></div>');
                             _self.closest('div').find('input,textarea').val('');
 
                             setTimeout(function() {
