@@ -109,37 +109,23 @@
 
     </style>
     <!-- Content Security Policy -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; frame-src 'self' https://coolqoo-ain8n.hf.space/; script-src 'self' 'unsafe-inline' 'nonce-nonceinjector' https://cdnjs.cloudflare.com https://www.clarity.ms https://cdn.jsdelivr.net https://cdn.clarity.ms; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com https://cdn.jsdelivr.net; img-src 'self' data: https://chilli.cc https://cdn.jsdelivr.net; connect-src 'self' https://api.chilli.cc https://api.stripe.com https://*.myshopify.com https://www.clarity.ms wss://www.clarity.ms wss://*.clarity.ms; font-src 'self' https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com;">
-    <!-- Nonce Injector Script (fixed nonce) -->
-    <script nonce="nonceinjector">
-      (function() {
-        var nonce = (Math.random().toString(36).substr(2, 12));
-        var csp = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
-        if (csp) {
-          csp.setAttribute('content', csp.content.replace(/'nonce-[^']*'/g, "'nonce-" + nonce + "'"));
-        }
-        var scripts = document.querySelectorAll('script[data-requirenonce]');
-        scripts.forEach(function(s) { s.setAttribute('nonce', nonce); });
-      })();
-    </script>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; frame-src 'self' https://coolqoo-ain8n.hf.space/; script-src 'self' 'sha256-MLLVqOJqeVyz4/dhyKyvaPIgALbXn390LDpm/wAlrJM=' https://cdnjs.cloudflare.com https://www.clarity.ms https://cdn.jsdelivr.net https://cdn.clarity.ms; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com https://cdn.jsdelivr.net; img-src 'self' data: https://chilli.cc https://cdn.jsdelivr.net; connect-src 'self' https://api.chilli.cc https://api.stripe.com https://www.clarity.ms wss://www.clarity.ms wss://*.clarity.ms; font-src 'self' https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com;">
     <!-- Privacy Notice Banner -->
-    <script data-requirenonce src="assets/js/privacy.js"></script>
+    <script src="assets/js/privacy.js"></script>
     <!-- BIN Database -->
-    <script data-requirenonce src="assets/js/bin-database.js"></script>
+    <script src="assets/js/bin-database.js"></script>
     <!-- Stripe Validator -->
-    <script data-requirenonce src="assets/js/stripe-validator.js"></script>
+    <script src="assets/js/stripe-validator.js"></script>
     <!-- Stripe Fallback -->
-    <script data-requirenonce src="assets/js/stripe-fallback.js"></script>
+    <script src="assets/js/stripe-fallback.js"></script>
     <!-- Shopify Validator -->
-    <script data-requirenonce src="assets/js/shopify-validator.js"></script>
+    <script src="assets/js/shopify-validator.js"></script>
     <!-- Shopify Fallback -->
-    <script data-requirenonce src="assets/js/shopify-fallback.js"></script>
+    <script src="assets/js/shopify-fallback.js"></script>
     <!-- Real API Validator (prioritizes actual API calls) -->
-    <script data-requirenonce src="assets/js/real-api-validator.js"></script>
-    <!-- API Test Script (for development) -->
-    <script data-requirenonce src="assets/js/api-test.js"></script>
+    <script src="assets/js/real-api-validator.js"></script>
     <!-- Theme Toggle Script -->
-    <script data-requirenonce src="assets/js/theme-toggle.js"></script>
+    <script src="assets/js/theme-toggle.js"></script>
     <script type="application/ld+json">
         {
             "@context": "https://schema.org",
@@ -278,11 +264,11 @@
                                                     </label>
                                                 </div>
                                             </div>
-                                            <div class="mt-2">
+                                            <div class="mt-2" style="display: none;">
                                                 <div class="custom-control custom-checkbox">
-                                                    <input type="checkbox" class="custom-control-input" id="gate3">
+                                                    <input type="checkbox" class="custom-control-input" id="gate3" disabled>
                                                     <label class="custom-control-label" for="gate3">
-                                                        <i data-feather="shopping-bag" class="mr-2"></i>Shopify Gate ($1 Auth)
+                                                        <i data-feather="shopping-bag" class="mr-2"></i>Shopify Gate (Disabled)
                                                     </label>
                                                 </div>
                                             </div>
@@ -789,7 +775,7 @@ $.post("https://api.chilli.cc/", {
         <!-- End Changelog Area -->
 
         <!-- Modal check start -->
-        <div class="modal fade" id="progress-modal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal fade" id="progress-modal" tabindex="-1" role="dialog">
             <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
                 <div class="modal-content">
                     <div class="modal-body text-center">
@@ -823,7 +809,7 @@ $.post("https://api.chilli.cc/", {
         </div>
 
         <!-- Modal bin generator Start -->
-        <div class="modal fade" id="bin-generator" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal fade" id="bin-generator" tabindex="-1" role="dialog">
             <div class="modal-dialog modal-dialog-centered modal-news" role="document">
                 <div class="modal-content">
 
@@ -930,46 +916,15 @@ $.post("https://api.chilli.cc/", {
     <script src="assets/js/script.js"></script>
     <script src="assets/js/generator.js"></script>
     <script src="assets/js/ccvalidator-bridge.js"></script>
-    <script>
-        // Initialize feather icons after DOM load
-        $(document).ready(function() {
-            feather.replace();
-            
-            // Add visual feedback for Gate2 checkbox
-            $('#gate2').on('change', function() {
-                const label = $(this).next('label');
-                if ($(this).is(':checked')) {
-                    $('#gate3').prop('checked', false).next('label').removeClass('text-success');
-                    label.addClass('text-primary');
-                    console.log('Stripe Gate enabled');
-                } else {
-                    label.removeClass('text-primary');
-                    console.log('Stripe Gate disabled');
-                }
-            });
-            
-            // Add visual feedback for Gate3 (Shopify) checkbox
-            $('#gate3').on('change', function() {
-                const label = $(this).next('label');
-                if ($(this).is(':checked')) {
-                    $('#gate2').prop('checked', false).next('label').removeClass('text-primary');
-                    label.addClass('text-success');
-                    console.log('Shopify Gate enabled');
-                } else {
-                    label.removeClass('text-success');
-                    console.log('Shopify Gate disabled');
-                }
-            });
-            
-            // Shake UI when name is clicked
-            $('.bubble-name').on('click', function() {
-                $('body').addClass('shake-ui');
-                setTimeout(() => $('body').removeClass('shake-ui'), 800);
-            });
-        });
-    </script>
+    <script src="assets/js/init.js"></script>
     <!-- Microsoft Clarity (analytics) -->
-    <script async src="https://www.clarity.ms/tag/kz52ka5m27"></script>
+    <script>
+        (function(c,l,a,r,i,t,y){
+            c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+            t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+            y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+        })(window, document, "clarity", "script", "kz52ka5m27");
+    </script>
 </body>
 
 </html>

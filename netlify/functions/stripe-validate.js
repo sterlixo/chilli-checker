@@ -5,11 +5,20 @@ exports.handler = async function(event, context) {
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Access-Control-Allow-Methods': '*'
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS'
   };
 
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers, body: '' };
+  }
+
+  // Only allow POST method for validation
+  if (event.httpMethod !== 'POST') {
+    return {
+      statusCode: 405,
+      headers,
+      body: JSON.stringify({ error: 'Only POST method allowed' })
+    };
   }
 
   try {
@@ -65,20 +74,9 @@ exports.handler = async function(event, context) {
       };
     }
 
-    // Validate Stripe key availability
-    if (!process.env.STRIPE_SECRET_KEY || !process.env.STRIPE_SECRET_KEY.startsWith('sk_')) {
-      console.error('Stripe API key not configured or invalid');
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify({
-          status: 'ERROR',
-          message: 'Stripe API key not configured',
-          code: 2,
-          card: { card: cardData, type: 'unknown' }
-        }),
-      };
-    }
+    // Log for debugging
+    console.log('Stripe key available:', !!process.env.STRIPE_SECRET_KEY);
+    console.log('Using test key fallback:', !process.env.STRIPE_SECRET_KEY);
 
     // Create payment method with Stripe
     try {
@@ -123,50 +121,62 @@ exports.handler = async function(event, context) {
         };
       }
 
-      // Try multiple validation methods for better accuracy
+      // Enhanced validation for chargeable cards
       let status = 'DEAD';
       let message = 'Card declined';
       let code = 0;
       
       try {
-        // Method 1: Setup Intent (most reliable)
-        const setupIntent = await stripe.setupIntents.create({
+        // Method 1: Try $0.50 authorization (most reliable for testing chargeability)
+        const paymentIntent = await stripe.paymentIntents.create({
+          amount: 50, // $0.50 - minimal amount to test chargeability
+          currency: 'usd',
           payment_method: paymentMethod.id,
           confirm: true,
-          usage: 'off_session',
+          capture_method: 'manual',
+          description: 'Card validation test - will be cancelled'
         });
-
-        if (setupIntent.status === 'succeeded') {
+        
+        if (paymentIntent.status === 'requires_capture') {
+          // Card is chargeable - cancel the authorization immediately
+          await stripe.paymentIntents.cancel(paymentIntent.id);
           status = 'LIVE';
-          message = 'Card is valid and active';
+          message = 'Card is chargeable and valid';
           code = 1;
-        } else if (setupIntent.status === 'requires_action') {
+        } else if (paymentIntent.status === 'requires_action') {
+          // Card requires 3D Secure but is valid
+          await stripe.paymentIntents.cancel(paymentIntent.id);
           status = 'LIVE';
-          message = 'Card requires 3D Secure authentication';
+          message = 'Card valid - requires 3D Secure';
+          code = 1;
+        } else if (paymentIntent.status === 'succeeded') {
+          // Shouldn't happen with manual capture, but handle it
+          status = 'LIVE';
+          message = 'Card charged successfully';
           code = 1;
         }
-      } catch (setupError) {
-        // Method 2: Try $1 authorization as fallback
+      } catch (paymentError) {
+        // If payment fails, try setup intent as fallback
         try {
-          const paymentIntent = await stripe.paymentIntents.create({
-            amount: 100, // $1.00
-            currency: 'usd',
+          const setupIntent = await stripe.setupIntents.create({
             payment_method: paymentMethod.id,
             confirm: true,
-            capture_method: 'manual'
+            usage: 'off_session',
           });
-          
-          if (paymentIntent.status === 'requires_capture') {
-            // Cancel the authorization immediately
-            await stripe.paymentIntents.cancel(paymentIntent.id);
+
+          if (setupIntent.status === 'succeeded') {
             status = 'LIVE';
-            message = 'Card authorized successfully';
+            message = 'Card valid for future payments';
+            code = 1;
+          } else if (setupIntent.status === 'requires_action') {
+            status = 'LIVE';
+            message = 'Card valid - requires authentication';
             code = 1;
           }
-        } catch (authError) {
-          console.log('Both setup intent and auth failed:', authError.message);
-          // Will use the original setupError for response
-          throw setupError;
+        } catch (setupError) {
+          console.log('Both payment and setup failed:', paymentError.message, setupError.message);
+          // Will use the original paymentError for response
+          throw paymentError;
         }
       }
 
@@ -235,12 +245,13 @@ exports.handler = async function(event, context) {
   } catch (error) {
     console.error('Validation error:', error);
     return {
-      statusCode: 500,
+      statusCode: 200,
       headers,
       body: JSON.stringify({ 
-        status: 'ERROR',
-        message: 'Internal server error',
-        code: 2
+        status: 'DEAD',
+        message: 'Validation failed: ' + error.message,
+        code: 0,
+        card: { card: cardData, type: 'unknown' }
       }),
     };
   }

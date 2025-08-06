@@ -16,8 +16,8 @@ $("#start").click(function() {
 
     let ccs = $('#cc').val().split("\n");
     const useGate2 = $("#gate2").is(":checked");
-    const useGate3 = $("#gate3").is(":checked");
-    const timerDuration = useGate3 ? 6000 : (useGate2 ? 4500 : 2500);
+    const useGate3 = false; // Shopify gate disabled
+    const timerDuration = useGate2 ? 4500 : 2500;
 
     const timer = ms => new Promise(res => setTimeout(res, ms));
 
@@ -29,10 +29,7 @@ $("#start").click(function() {
             };
 
             let apiUrl, requestData;
-            if (useGate3) {
-                apiUrl = "/.netlify/functions/shopify-validate";
-                requestData = { cardData: ccs[i] };
-            } else if (useGate2) {
+            if (useGate2) {
                 apiUrl = "/.netlify/functions/stripe-validate";
                 requestData = { cardData: ccs[i] };
             } else {
@@ -84,37 +81,8 @@ $("#start").click(function() {
                     removeline();
                 },
                 error: function(jqXHR, textStatus, errorThrown) {
-                    // If Shopify API fails and gate3 is checked, use fallback
-                    if (useGate3 && typeof ShopifyFallback !== 'undefined') {
-                        const fallback = new ShopifyFallback();
-                        fallback.validateCard(ccs[i]).then(function(result) {
-                            const safeStatus = $('<div>').text(result.status).html();
-                            const safeCard = $('<div>').text(result.card.card).html();
-                            const safeType = $('<div>').text(result.card.type || 'Unknown').html();
-                            const safeMessage = $('<div>').text(result.message).html();
-                            const msg = `<div><b style="color:${result.status === 'LIVE' ? '#20b27c' : '#ff014f'}">${safeStatus}</b> | ${safeCard} | ${safeType} | ${safeMessage}</div>`;
-                            
-                            if (result.status === 'LIVE') {
-                                $('#live').children().children().append(msg);
-                                $('#live-tab').children().html(parseInt($('#live-tab').children().text()) + 1);
-                            } else {
-                                $('#die').children().children().append(msg);
-                                $('#die-tab').children().html(parseInt($('#die-tab').children().text()) + 1);
-                            }
-                            
-                            $('#live-count').text($('#live-tab span').text());
-                            $('#die-count').text($('#die-tab span').text());
-                            $('#unknown-count').text($('#unknown-tab span').text());
-                            
-                            let progress = ((i + 1) / ccs.length * 100).toFixed(2) + '%';
-                            $('#progress-modal .progress-bar').width(progress);
-                            $('#progress-modal .percent-label').html(progress);
-                            removeline();
-                        });
-                        return;
-                    }
                     // If Stripe API fails and gate2 is checked, use fallback
-                    else if (useGate2 && typeof StripeFallback !== 'undefined') {
+                    if (useGate2 && typeof StripeFallback !== 'undefined') {
                         const fallback = new StripeFallback();
                         fallback.validateCard(ccs[i]).then(function(result) {
                             const safeStatus = $('<div>').text(result.status).html();

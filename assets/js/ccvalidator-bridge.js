@@ -62,36 +62,23 @@ $(function() {
         $startBtn.hide();
         $progressModal.modal({ backdrop: 'static', keyboard: false });
         
-        // Choose validator based on gate checkboxes - prioritize real API
+        // Choose validator based on gate checkboxes - focus on Stripe only
         const useStripe = $('#gate2').is(':checked');
-        const useShopify = $('#gate3').is(':checked');
         let activeValidator = validator;
         let validationMethod = 'local';
         
-        if (useShopify || useStripe) {
-            // Use RealApiValidator for both Stripe and Shopify
+        if (useStripe) {
+            // Use RealApiValidator for Stripe
             if (typeof RealApiValidator !== 'undefined') {
                 activeValidator = new RealApiValidator();
-                validationMethod = useShopify ? 'shopify' : 'stripe';
-                console.log(`Using Real API validator with ${validationMethod} method`);
-            } else {
-                // Fallback to old validators only if RealApiValidator unavailable
-                if (useShopify) {
-                    if (typeof ShopifyValidator !== 'undefined') {
-                        activeValidator = new ShopifyValidator();
-                        console.log('Using Shopify validator');
-                    } else if (typeof ShopifyFallback !== 'undefined') {
-                        activeValidator = new ShopifyFallback();
-                        console.log('Using Shopify fallback validator');
-                    }
-                } else if (useStripe) {
-                    if (typeof StripeValidator !== 'undefined') {
-                        activeValidator = new StripeValidator();
-                    } else if (typeof StripeFallback !== 'undefined') {
-                        activeValidator = new StripeFallback();
-                        console.log('Using Stripe fallback validator');
-                    }
-                }
+                validationMethod = 'stripe';
+                console.log('Using Real API validator with stripe method');
+            } else if (typeof StripeValidator !== 'undefined') {
+                activeValidator = new StripeValidator();
+                console.log('Using Stripe validator');
+            } else if (typeof StripeFallback !== 'undefined') {
+                activeValidator = new StripeFallback();
+                console.log('Using Stripe fallback validator');
             }
         }
         
@@ -141,10 +128,6 @@ $(function() {
         if (typeof StripeValidator !== 'undefined') {
             const stripeValidator = new StripeValidator();
             stripeValidator.stopProcessing();
-        }
-        if (typeof ShopifyValidator !== 'undefined') {
-            const shopifyValidator = new ShopifyValidator();
-            shopifyValidator.stopProcessing();
         }
         
         $stopBtn.prop('disabled', true).hide();
