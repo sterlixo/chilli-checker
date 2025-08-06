@@ -5,7 +5,7 @@ exports.handler = async function(event, context) {
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS'
+    'Access-Control-Allow-Methods': 'POST, OPTIONS'
   };
 
   if (event.httpMethod === 'OPTIONS') {
@@ -28,24 +28,12 @@ exports.handler = async function(event, context) {
     
     let cardData;
     
-    // Handle different request methods
-    if (event.httpMethod === 'GET') {
-      cardData = event.queryStringParameters?.cardData;
-    } else if (event.httpMethod === 'POST') {
-      try {
-        const body = event.body ? JSON.parse(event.body) : {};
-        cardData = body.cardData || body.data;
-      } catch (parseError) {
-        cardData = event.body; // Fallback for plain text
-      }
-    } else {
-      // Handle other methods by trying to parse body
-      try {
-        const body = event.body ? JSON.parse(event.body) : {};
-        cardData = body.cardData || body.data;
-      } catch (parseError) {
-        cardData = event.queryStringParameters?.cardData || event.body;
-      }
+    // Handle POST request body
+    try {
+      const body = event.body ? JSON.parse(event.body) : {};
+      cardData = body.cardData || body.data;
+    } catch (parseError) {
+      cardData = event.body; // Fallback for plain text
     }
     
     console.log('Parsed cardData:', cardData?.substring(0, 10) + '...');
@@ -121,62 +109,47 @@ exports.handler = async function(event, context) {
         };
       }
 
-      // Enhanced validation for chargeable cards
+      // Real chargeability test with $1.00 charge
       let status = 'DEAD';
       let message = 'Card declined';
       let code = 0;
       
       try {
-        // Method 1: Try $0.50 authorization (most reliable for testing chargeability)
+        // Test actual chargeability with $1.00 charge
         const paymentIntent = await stripe.paymentIntents.create({
-          amount: 50, // $0.50 - minimal amount to test chargeability
+          amount: 100, // $1.00 - real charge test
           currency: 'usd',
           payment_method: paymentMethod.id,
           confirm: true,
-          capture_method: 'manual',
-          description: 'Card validation test - will be cancelled'
+          description: 'Card validation charge test'
         });
         
-        if (paymentIntent.status === 'requires_capture') {
-          // Card is chargeable - cancel the authorization immediately
-          await stripe.paymentIntents.cancel(paymentIntent.id);
+        if (paymentIntent.status === 'succeeded') {
           status = 'LIVE';
-          message = 'Card is chargeable and valid';
+          message = 'Card charged successfully - LIVE';
           code = 1;
         } else if (paymentIntent.status === 'requires_action') {
-          // Card requires 3D Secure but is valid
-          await stripe.paymentIntents.cancel(paymentIntent.id);
           status = 'LIVE';
           message = 'Card valid - requires 3D Secure';
           code = 1;
-        } else if (paymentIntent.status === 'succeeded') {
-          // Shouldn't happen with manual capture, but handle it
+        } else if (paymentIntent.status === 'requires_capture') {
           status = 'LIVE';
-          message = 'Card charged successfully';
+          message = 'Card authorized successfully';
           code = 1;
         }
       } catch (paymentError) {
-        // If payment fails, try setup intent as fallback
-        try {
-          const setupIntent = await stripe.setupIntents.create({
-            payment_method: paymentMethod.id,
-            confirm: true,
-            usage: 'off_session',
-          });
-
-          if (setupIntent.status === 'succeeded') {
-            status = 'LIVE';
-            message = 'Card valid for future payments';
-            code = 1;
-          } else if (setupIntent.status === 'requires_action') {
-            status = 'LIVE';
-            message = 'Card valid - requires authentication';
-            code = 1;
-          }
-        } catch (setupError) {
-          console.log('Both payment and setup failed:', paymentError.message, setupError.message);
-          // Will use the original paymentError for response
-          throw paymentError;
+        // Card failed the charge test
+        status = 'DEAD';
+        code = 0;
+        
+        if (paymentError.code === 'card_declined') {
+          message = 'Card declined - insufficient funds or blocked';
+        } else if (paymentError.code === 'expired_card') {
+          message = 'Card expired';
+        } else if (paymentError.code === 'incorrect_cvc') {
+          message = 'Invalid CVC';
+        } else {
+          message = paymentError.message || 'Card validation failed';
         }
       }
 

@@ -13,6 +13,7 @@
 [dev]
   functions = "netlify/functions"
   publish = "."
+  port = 4000
 
 # Environment variables for development
 [context.dev.environment]

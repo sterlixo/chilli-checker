@@ -161,6 +161,14 @@ $("#modal-stop").click(function() {
     $('#stop').hide();
 });
 
+// Fix modal focus issues
+$('#progress-modal').on('show.bs.modal', function() {
+    $(this).removeAttr('aria-hidden');
+}).on('hidden.bs.modal', function() {
+    $(this).attr('aria-hidden', 'true');
+    $(this).find('button').blur();
+});
+
 $("#stripe").on("change", function() {
     if ($(this).is(":checked"))
         $("#key").show()
@@ -176,7 +184,9 @@ $("#gen").click(function() {
 });
 
 // Add this event handler for the modal
-$('#bin-generator').on('shown.bs.modal', function() {
+$('#bin-generator').on('show.bs.modal', function() {
+    $(this).removeAttr('aria-hidden');
+}).on('shown.bs.modal', function() {
     $('#bin').focus();
     // Populate year dropdown
     const yearSelect = $('#year');
@@ -194,6 +204,8 @@ $('#bin-generator').on('shown.bs.modal', function() {
             monthSelect.append(new Option(months[i], String(i + 1).padStart(2, '0')));
         }
     }
+}).on('hide.bs.modal', function() {
+    $(this).attr('aria-hidden', 'true');
 });
 
 function removeline() {

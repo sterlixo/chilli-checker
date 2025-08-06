@@ -9,7 +9,7 @@ exports.handler = async function(event, context) {
     return { statusCode: 200, headers, body: '' };
   }
 
-  if (event.httpMethod !== 'POST' && event.httpMethod !== 'GET') {
+  if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
       headers,
@@ -18,14 +18,8 @@ exports.handler = async function(event, context) {
   }
 
   try {
-    let data;
-    
-    if (event.httpMethod === 'GET') {
-      data = event.queryStringParameters?.data;
-    } else {
-      const body = event.body ? JSON.parse(event.body) : {};
-      data = body.data;
-    }
+    const body = event.body ? JSON.parse(event.body) : {};
+    const data = body.data;
 
     // CCValidator class (from script.js)
     class CCValidator {
@@ -171,6 +165,17 @@ exports.handler = async function(event, context) {
         }
         return Math.abs(hash);
       }
+
+      generateRandomName(cardNumber) {
+        const firstNames = ['James', 'John', 'Robert', 'Michael', 'William', 'David', 'Richard', 'Joseph', 'Thomas', 'Christopher', 'Charles', 'Daniel', 'Matthew', 'Anthony', 'Mark', 'Donald', 'Steven', 'Paul', 'Andrew', 'Joshua', 'Kenneth', 'Kevin', 'Brian', 'George', 'Timothy', 'Ronald', 'Jason', 'Edward', 'Jeffrey', 'Ryan', 'Jacob', 'Gary', 'Nicholas', 'Eric', 'Jonathan', 'Stephen', 'Larry', 'Justin', 'Scott', 'Brandon', 'Benjamin', 'Samuel', 'Gregory', 'Alexander', 'Patrick', 'Frank', 'Raymond', 'Jack', 'Dennis', 'Jerry', 'Tyler', 'Aaron', 'Jose', 'Henry', 'Adam', 'Douglas', 'Nathan', 'Peter', 'Zachary', 'Kyle', 'Noah', 'Alan', 'Ethan', 'Jeremy', 'Lionel', 'Arthur', 'Wayne', 'Sean', 'Mason', 'Carl', 'Ralph', 'Roy', 'Eugene', 'Louis', 'Philip', 'Bobby', 'Mary', 'Patricia', 'Jennifer', 'Linda', 'Elizabeth', 'Barbara', 'Susan', 'Jessica', 'Sarah', 'Karen', 'Nancy', 'Lisa', 'Betty', 'Helen', 'Sandra', 'Donna', 'Carol', 'Ruth', 'Sharon', 'Michelle', 'Laura', 'Sarah', 'Kimberly', 'Deborah', 'Dorothy', 'Lisa', 'Nancy', 'Karen', 'Betty', 'Helen', 'Sandra', 'Donna', 'Carol', 'Ruth', 'Sharon', 'Michelle', 'Laura', 'Sarah', 'Kimberly', 'Deborah', 'Dorothy', 'Amy', 'Angela', 'Ashley', 'Brenda', 'Emma', 'Olivia', 'Cynthia', 'Marie', 'Janet', 'Catherine', 'Frances', 'Christine', 'Samantha', 'Debra', 'Rachel', 'Carolyn', 'Janet', 'Virginia', 'Maria', 'Heather', 'Diane', 'Julie', 'Joyce', 'Victoria', 'Kelly', 'Christina', 'Joan', 'Evelyn', 'Lauren', 'Judith', 'Megan', 'Cheryl', 'Andrea', 'Hannah', 'Jacqueline', 'Martha', 'Gloria', 'Teresa', 'Sara', 'Janice', 'Marie', 'Julia', 'Heather', 'Diane', 'Ruth', 'Julie', 'Joyce', 'Virginia'];
+        const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Hernandez', 'Lopez', 'Gonzalez', 'Wilson', 'Anderson', 'Thomas', 'Taylor', 'Moore', 'Jackson', 'Martin', 'Lee', 'Perez', 'Thompson', 'White', 'Harris', 'Sanchez', 'Clark', 'Ramirez', 'Lewis', 'Robinson', 'Walker', 'Young', 'Allen', 'King', 'Wright', 'Scott', 'Torres', 'Nguyen', 'Hill', 'Flores', 'Green', 'Adams', 'Nelson', 'Baker', 'Hall', 'Rivera', 'Campbell', 'Mitchell', 'Carter', 'Roberts', 'Gomez', 'Phillips', 'Evans', 'Turner', 'Diaz', 'Parker', 'Cruz', 'Edwards', 'Collins', 'Reyes', 'Stewart', 'Morris', 'Morales', 'Murphy', 'Cook', 'Rogers', 'Gutierrez', 'Ortiz', 'Morgan', 'Cooper', 'Peterson', 'Bailey', 'Reed', 'Kelly', 'Howard', 'Ramos', 'Kim', 'Cox', 'Ward', 'Richardson', 'Watson', 'Brooks', 'Chavez', 'Wood', 'James', 'Bennett', 'Gray', 'Mendoza', 'Ruiz', 'Hughes', 'Price', 'Alvarez', 'Castillo', 'Sanders', 'Patel', 'Myers', 'Long', 'Ross', 'Foster', 'Jimenez', 'Powell', 'Jenkins', 'Perry', 'Russell', 'Sullivan', 'Bell', 'Coleman', 'Butler', 'Henderson', 'Barnes', 'Gonzales', 'Fisher', 'Vasquez', 'Simmons', 'Romero', 'Jordan', 'Patterson', 'Alexander', 'Hamilton', 'Graham', 'Reynolds', 'Griffin', 'Wallace', 'Moreno', 'West', 'Cole', 'Hayes', 'Bryant', 'Herrera', 'Gibson', 'Ellis', 'Tran', 'Medina', 'Aguilar', 'Stevens', 'Murray', 'Ford', 'Castro', 'Marshall', 'Owens', 'Harrison'];
+        
+        const hash = this.simpleHash(cardNumber);
+        const firstIndex = hash % firstNames.length;
+        const lastIndex = (hash * 7) % lastNames.length;
+        
+        return `${firstNames[firstIndex]} ${lastNames[lastIndex]}`;
+      }
     }
 
     const validator = new CCValidator();
@@ -182,16 +187,19 @@ exports.handler = async function(event, context) {
       status = validator.validateBIN(number.replace(/\D/g, ""), validation.type);
       code = status === "LIVE" ? 1 : (status === "DEAD" ? 0 : 2);
     }
+    const { number } = validator.extractCardData(data);
+    const randomName = validator.generateRandomName(number.replace(/\D/g, ""));
+    
     return {
       statusCode: 200,
       headers,
       body: JSON.stringify({
         code,
         status,
-        message: validation.reason || (status === "LIVE" ? "Card is valid" : "Card is invalid"),
+        message: validation.reason || (status === "LIVE" ? "Card is valid" : "Card declined"),
         card: {
           card: data,
-          type: validation.type,
+          type: validation.type === "unknown" ? randomName : validation.type,
         }
       }),
     };

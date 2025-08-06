@@ -4,7 +4,7 @@
   "description": "Credit Card Validator with Stripe Integration",
   "main": "index.js",
   "scripts": {
-    "dev": "netlify dev",
+    "dev": "netlify dev --port 4000",
     "build": "echo 'No build step required'",
     "deploy": "netlify deploy --prod"
   },
