@@ -35,26 +35,35 @@ $(function() {
 
     // Add result to tab
     function addResult(result) {
-        const { number, month, year, cvv } = validator.extractCardData(result.cardData);
-        const cardInfo = `${number}|${month}|${year}|${cvv}`;
+        console.log('Adding result to UI:', result);
+        const cardInfo = result.cardData;
         const msg = `<div><b style="color:${result.status === 'LIVE' ? '#20b27c' : (result.status === 'DEAD' ? '#ff014f' : '#fce00c')}">${result.status}</b> | ${cardInfo} | ${result.type ? result.type.toUpperCase() : ''} ${result.reason ? '| ' + result.reason : ''}</div>`;
+        
         if (result.status === 'LIVE') {
             $liveBody.append(msg);
-            $liveTab.find('span').text(parseInt($liveTab.find('span').text()) + 1);
+            const currentCount = parseInt($liveTab.find('span').text()) || 0;
+            $liveTab.find('span').text(currentCount + 1);
         } else if (result.status === 'DEAD') {
             $dieBody.append(msg);
-            $dieTab.find('span').text(parseInt($dieTab.find('span').text()) + 1);
+            const currentCount = parseInt($dieTab.find('span').text()) || 0;
+            $dieTab.find('span').text(currentCount + 1);
         } else {
             $unknownBody.append(msg);
-            $unknownTab.find('span').text(parseInt($unknownTab.find('span').text()) + 1);
+            const currentCount = parseInt($unknownTab.find('span').text()) || 0;
+            $unknownTab.find('span').text(currentCount + 1);
         }
     }
 
     // Start validation (local or Stripe)
     $startBtn.on('click', function() {
+        console.log('Start button clicked');
         resetTabs();
         const cards = $ccInput.val().split('\n').map(l => l.trim()).filter(Boolean);
-        if (!cards.length) return;
+        console.log('Cards to validate:', cards.length);
+        if (!cards.length) {
+            alert('Please enter card data');
+            return;
+        }
         
         $startBtn.prop('disabled', true);
         $ccInput.prop('disabled', true);
@@ -62,24 +71,18 @@ $(function() {
         $startBtn.hide();
         $progressModal.modal({ backdrop: 'static', keyboard: false });
         
-        // Choose validator based on gate checkboxes - focus on Stripe only
+        // Choose validator based on gate checkboxes
         const useStripe = $('#gate2').is(':checked');
+        console.log('Use Stripe:', useStripe);
         let activeValidator = validator;
         let validationMethod = 'local';
         
-        if (useStripe) {
-            // Use RealApiValidator for Stripe
-            if (typeof RealApiValidator !== 'undefined') {
-                activeValidator = new RealApiValidator();
-                validationMethod = 'stripe';
-                console.log('Using Real API validator with stripe method');
-            } else if (typeof StripeValidator !== 'undefined') {
-                activeValidator = new StripeValidator();
-                console.log('Using Stripe validator');
-            } else if (typeof StripeFallback !== 'undefined') {
-                activeValidator = new StripeFallback();
-                console.log('Using Stripe fallback validator');
-            }
+        if (useStripe && typeof RealApiValidator !== 'undefined') {
+            activeValidator = new RealApiValidator();
+            validationMethod = 'stripe';
+            console.log('Using Real API validator with stripe method');
+        } else {
+            console.log('Using local CCValidator');
         }
         
         activeValidator.isProcessing = true;
@@ -87,6 +90,7 @@ $(function() {
         // Pass validation method to RealApiValidator
         const processBatchArgs = [cards,
             function(stats) {
+                console.log('Progress update:', stats);
                 const percent = Math.floor((stats.processed / stats.total) * 100);
                 $progressBar.width(percent + '%');
                 $percentLabel.text(percent + '%');
@@ -98,6 +102,7 @@ $(function() {
                 }
             },
             function(result) {
+                console.log('Result received:', result);
                 addResult(result);
             }
         ];
@@ -107,31 +112,46 @@ $(function() {
             processBatchArgs.push(validationMethod);
         }
         
+        console.log('Starting batch processing...');
         activeValidator.processBatch(...processBatchArgs).then(() => {
+            console.log('Batch processing complete');
             $startBtn.prop('disabled', false).show();
             $ccInput.prop('disabled', false);
             $stopBtn.prop('disabled', true).hide();
             setTimeout(() => $progressModal.modal('hide'), 1200);
             $ccInput.val('');
+        }).catch(error => {
+            console.error('Batch processing error:', error);
+            $startBtn.prop('disabled', false).show();
+            $ccInput.prop('disabled', false);
+            $stopBtn.prop('disabled', true).hide();
+            $progressModal.modal('hide');
         });
     });
 
     // Stop validation
     $stopBtn.on('click', function() {
         validator.stopProcessing();
-        
-        // Stop all possible validators
         if (typeof RealApiValidator !== 'undefined') {
             const realValidator = new RealApiValidator();
             realValidator.stopProcessing();
         }
-        if (typeof StripeValidator !== 'undefined') {
-            const stripeValidator = new StripeValidator();
-            stripeValidator.stopProcessing();
-        }
-        
         $stopBtn.prop('disabled', true).hide();
         $startBtn.prop('disabled', false).show();
         $ccInput.prop('disabled', false);
+        $progressModal.modal('hide');
+    });
+    
+    // Modal stop button
+    $('#modal-stop').on('click', function() {
+        validator.stopProcessing();
+        if (typeof RealApiValidator !== 'undefined') {
+            const realValidator = new RealApiValidator();
+            realValidator.stopProcessing();
+        }
+        $stopBtn.prop('disabled', true).hide();
+        $startBtn.prop('disabled', false).show();
+        $ccInput.prop('disabled', false);
+        $progressModal.modal('hide');
     });
 });

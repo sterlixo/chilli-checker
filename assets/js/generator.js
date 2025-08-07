@@ -1,7 +1,7 @@
 let exit;
 const SIGNATURE = ""; // Removed zero-width signature for security
 
-$("#start").click(function() {
+$("#start-old").click(function() {
     exit = 0;
     $(this).attr('disabled', 'disabled');
     $('#cc').attr('disabled', 'disabled');
@@ -15,9 +15,7 @@ $("#start").click(function() {
     });
 
     let ccs = $('#cc').val().split("\n");
-    const useGate2 = $("#gate2").is(":checked");
-    const useGate3 = false; // Shopify gate disabled
-    const timerDuration = useGate2 ? 4500 : 2500;
+    const timerDuration = 2500;
 
     const timer = ms => new Promise(res => setTimeout(res, ms));
 
@@ -25,17 +23,11 @@ $("#start").click(function() {
         for (i = 0; i < ccs.length; i++) {
             let postData = {
                 data: ccs[i],
-                charge: useGate2
+                charge: false
             };
 
-            let apiUrl, requestData;
-            if (useGate2) {
-                apiUrl = "/.netlify/functions/stripe-validate";
-                requestData = { cardData: ccs[i] };
-            } else {
-                apiUrl = "/.netlify/functions/check";
-                requestData = postData;
-            }
+            let apiUrl = "/.netlify/functions/check";
+            let requestData = postData;
             
             $.ajax({
                 url: apiUrl,
@@ -67,7 +59,7 @@ $("#start").click(function() {
                     const safeCard = $('<div>').text(res.card.card).html();
                     const safeType = $('<div>').text(res.card.type || 'Unknown').html();
                     const safeMessage = $('<div>').text(res.message).html();
-                    const msg = `<div><b style="color:${res.status === 'Live' ? '#20b27c' : (res.status === 'Die' ? '#ff014f' : '#fce00c')}">${safeStatus}</b> | ${safeCard} | ${safeType} | ${safeMessage}</div>`;
+                    const msg = `<div><b style="color:${res.status === 'LIVE' ? '#20b27c' : (res.status === 'DEAD' ? '#ff014f' : '#fce00c')}">${safeStatus}</b> | ${safeCard} | ${safeType} | ${safeMessage}</div>`;
                     htmlAdd.children().children().append(msg);
                     htmlCount.children().html(parseInt(htmlCount.children().text()) + 1);
 
@@ -81,39 +73,19 @@ $("#start").click(function() {
                     removeline();
                 },
                 error: function(jqXHR, textStatus, errorThrown) {
-                    // If Stripe API fails and gate2 is checked, use fallback
-                    if (useGate2 && typeof StripeFallback !== 'undefined') {
-                        const fallback = new StripeFallback();
-                        fallback.validateCard(ccs[i]).then(function(result) {
-                            const safeStatus = $('<div>').text(result.status).html();
-                            const safeCard = $('<div>').text(result.card.card).html();
-                            const safeType = $('<div>').text(result.card.type || 'Unknown').html();
-                            const safeMessage = $('<div>').text(result.message).html();
-                            const msg = `<div><b style="color:${result.status === 'LIVE' ? '#20b27c' : '#ff014f'}">${safeStatus}</b> | ${safeCard} | ${safeType} | ${safeMessage}</div>`;
-                            
-                            if (result.status === 'LIVE') {
-                                $('#live').children().children().append(msg);
-                                $('#live-tab').children().html(parseInt($('#live-tab').children().text()) + 1);
-                            } else {
-                                $('#die').children().children().append(msg);
-                                $('#die-tab').children().html(parseInt($('#die-tab').children().text()) + 1);
-                            }
-                            
-                            $('#live-count').text($('#live-tab span').text());
-                            $('#die-count').text($('#die-tab span').text());
-                            $('#unknown-count').text($('#unknown-tab span').text());
-                            
-                            let progress = ((i + 1) / ccs.length * 100).toFixed(2) + '%';
-                            $('#progress-modal .progress-bar').width(progress);
-                            $('#progress-modal .percent-label').html(progress);
-                            removeline();
-                        });
-                        return;
+                    console.log('AJAX Error:', textStatus, errorThrown, jqXHR.responseText);
+                    
+                    // Try to parse error response
+                    let errorMessage = 'Validation failed';
+                    try {
+                        const errorResponse = JSON.parse(jqXHR.responseText);
+                        errorMessage = errorResponse.message || errorResponse.error || 'Validation failed';
+                    } catch (e) {
+                        errorMessage = `HTTP ${jqXHR.status}: ${textStatus}`;
                     }
                     
-                    // Original error handling
                     const safeCard = $('<div>').text(ccs[i]).html();
-                    const safeError = $('<div>').text('Fallback validation').html();
+                    const safeError = $('<div>').text(errorMessage).html();
                     const errorMsg = `<div><b style="color:#ff014f">Error</b> | ${safeCard} | ${safeError}</div>`;
                     $('#unknown').children().children().append(errorMsg);
                     $('#unknown-tab').children().html(parseInt($('#unknown-tab').children().text()) + 1);
@@ -151,7 +123,7 @@ $("#start").click(function() {
     check();
 });
 
-$("#modal-stop").click(function() {
+$("#modal-stop-old").click(function() {
     exit = 1;
     $('#progress-modal').modal('hide');
     $('#stop').attr('disabled', 'disabled');
@@ -161,19 +133,9 @@ $("#modal-stop").click(function() {
     $('#stop').hide();
 });
 
-// Fix modal focus issues
-$('#progress-modal').on('show.bs.modal', function() {
-    $(this).removeAttr('aria-hidden');
-}).on('hidden.bs.modal', function() {
-    $(this).attr('aria-hidden', 'true');
-    $(this).find('button').blur();
-});
 
-$("#stripe").on("change", function() {
-    if ($(this).is(":checked"))
-        $("#key").show()
-    else $("#key").hide();
-})
+
+
 
 $("#bin").blur(function() {
     $("#bin").val(addPlaceholder());
@@ -183,14 +145,17 @@ $("#gen").click(function() {
     $(".close").click();
 });
 
-// Add this event handler for the modal
-$('#bin-generator').on('show.bs.modal', function() {
+// Override Bootstrap modal aria-hidden behavior
+$('#bin-generator, #progress-modal').on('show.bs.modal shown.bs.modal hide.bs.modal hidden.bs.modal', function() {
     $(this).removeAttr('aria-hidden');
-}).on('shown.bs.modal', function() {
+});
+
+// Add this event handler for the modal
+$('#bin-generator').on('shown.bs.modal', function() {
     $('#bin').focus();
     // Populate year dropdown
     const yearSelect = $('#year');
-    if (yearSelect.children('option').length === 1) { // Only populate if it's not already populated
+    if (yearSelect.children('option').length === 1) {
         const currentYear = new Date().getFullYear();
         for (let i = 0; i <= 10; i++) {
             yearSelect.append(new Option(currentYear + i, currentYear + i));
@@ -198,14 +163,12 @@ $('#bin-generator').on('show.bs.modal', function() {
     }
     // Populate month dropdown
     const monthSelect = $('#month');
-    if (monthSelect.children('option').length === 1) { // Only populate if it's not already populated
+    if (monthSelect.children('option').length === 1) {
         const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
         for (let i = 0; i < months.length; i++) {
             monthSelect.append(new Option(months[i], String(i + 1).padStart(2, '0')));
         }
     }
-}).on('hide.bs.modal', function() {
-    $(this).attr('aria-hidden', 'true');
 });
 
 function removeline() {

@@ -7,14 +7,21 @@ class RealApiValidator {
   }
 
   async validateCard(cardData, method = 'stripe') {
-    // Use enhanced validation instead of risky real API calls
-    return this.enhancedValidation(cardData, method);
+    try {
+      return await this.callRealApi(cardData, method);
+    } catch (error) {
+      console.log('API call failed:', error.message);
+      return {
+        status: 'DEAD',
+        message: 'API validation failed - card not verified',
+        code: 0,
+        card: { card: cardData, type: 'unknown' }
+      };
+    }
   }
 
   async callRealApi(cardData, method) {
-    const endpoint = method === 'shopify' ? 
-      '/.netlify/functions/shopify-validate' : 
-      '/.netlify/functions/stripe-validate';
+    const endpoint = '/.netlify/functions/check';
 
     const response = await fetch(endpoint, {
       method: 'POST',
@@ -22,8 +29,8 @@ class RealApiValidator {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
       },
-      body: JSON.stringify({ cardData }),
-      timeout: 15000 // 15 second timeout
+      body: JSON.stringify({ data: cardData }),
+      timeout: 15000
     });
 
     if (!response.ok) {
@@ -32,73 +39,25 @@ class RealApiValidator {
 
     const result = await response.json();
     
-    // Validate response structure
-    if (!result.status || !['LIVE', 'DEAD', 'ERROR'].includes(result.status)) {
-      throw new Error('Invalid API response format');
-    }
-
-    return result;
-  }
-
-  enhancedValidation(cardData, method) {
-    const { number, month, year, cvv } = this.extractCardData(cardData);
-    
-    // Basic Luhn check
-    if (!this.luhnCheck(number.replace(/\D/g, ""))) {
-      return {
-        status: 'DEAD',
-        message: 'Invalid card number (Luhn check failed)',
-        code: 0,
-        card: { card: cardData, type: this.getCardType(number) }
-      };
-    }
-
-    // Known test cards
-    const testCards = {
-      '4242424242424242': 'LIVE',
-      '4111111111111111': 'LIVE', 
-      '5555555555554444': 'LIVE',
-      '378282246310005': 'LIVE',
-      '4000000000000002': 'DEAD',
-      '4000000000009995': 'DEAD'
-    };
-
-    const cleanNumber = number.replace(/\D/g, '');
-    if (testCards[cleanNumber]) {
-      return {
-        status: testCards[cleanNumber],
-        message: `${testCards[cleanNumber] === 'LIVE' ? 'Valid' : 'Declined'}`,
-        code: testCards[cleanNumber] === 'LIVE' ? 1 : 0,
-        card: { card: cardData, type: this.getCardType(number) }
-      };
-    }
-
-    // Enhanced BIN-based validation
-    const bin = cleanNumber.substring(0, 6);
-    const binNum = parseInt(bin);
-    const cardType = this.getCardType(number);
-    
-    let status = 'DEAD';
-    if (cardType === 'visa' && binNum >= 400000 && binNum <= 499999) {
-      status = (binNum % 7 === 0) ? 'LIVE' : 'DEAD';
-    } else if (cardType === 'mastercard' && binNum >= 510000 && binNum <= 559999) {
-      status = (binNum % 5 === 0) ? 'LIVE' : 'DEAD';
-    } else if (cardType === 'amex' && (binNum >= 340000 && binNum <= 379999)) {
-      status = (binNum % 3 === 0) ? 'LIVE' : 'DEAD';
-    }
-
     return {
-      status,
-      message: status === 'LIVE' ? 'Card validation passed' : 'Card declined',
-      code: status === 'LIVE' ? 1 : 0,
-      card: { card: cardData, type: cardType }
+      status: result.status,
+      message: result.message,
+      code: result.code,
+      card: result.card
     };
   }
+
+
 
   async processBatch(cardsData, progressCallback, resultCallback, method = 'stripe') {
-    if (this.isProcessing) return;
+    console.log('RealApiValidator processBatch called with:', cardsData.length, 'cards');
+    if (this.isProcessing) {
+      console.log('Already processing, returning');
+      return;
+    }
 
     this.isProcessing = true;
+    console.log('Starting batch processing...');
     const batch = {
       total: cardsData.length,
       processed: 0,
@@ -109,22 +68,21 @@ class RealApiValidator {
       fallbackUsed: 0
     };
 
-    for (let i = 0; i < cardsData.length; i++) {
-      if (!this.isProcessing) break;
-
+    for (let i = 0; i < cardsData.length && this.isProcessing; i++) {
       const cardData = cardsData[i].trim();
       if (!cardData) continue;
 
+      console.log(`Processing card ${i + 1}/${cardsData.length}:`, cardData);
+      
       const result = await this.validateCard(cardData, method);
+      console.log('Validation result:', result);
       
       batch.processed++;
-      
-      batch.apiSuccess++;
-      
       if (result.status === 'LIVE') {
+        batch.apiSuccess++;
         batch.valid++;
         batch.live++;
-      } else if (result.status === 'DEAD') {
+      } else {
         batch.valid++;
         batch.dead++;
       }
@@ -142,15 +100,14 @@ class RealApiValidator {
 
       progressCallback(batch);
 
-      // Rate limiting based on method
-      const delay = method === 'shopify' ? 2500 : 1800;
-      await new Promise(resolve => setTimeout(resolve, delay));
+      // Rate limiting
+      await new Promise(resolve => setTimeout(resolve, 500));
     }
 
     this.isProcessing = false;
     
     // Log final stats
-    console.log(`Batch complete: ${batch.apiSuccess} real API calls, ${batch.fallbackUsed} fallbacks`);
+    console.log(`Batch complete: ${batch.apiSuccess} successful API validations`);
     
     return batch;
   }

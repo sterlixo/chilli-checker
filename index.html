@@ -114,16 +114,6 @@
     <script src="assets/js/privacy.js"></script>
     <!-- BIN Database -->
     <script src="assets/js/bin-database.js"></script>
-    <!-- Stripe Validator -->
-    <script src="assets/js/stripe-validator.js"></script>
-    <!-- Stripe Fallback -->
-    <script src="assets/js/stripe-fallback.js"></script>
-    <!-- Shopify Validator -->
-    <script src="assets/js/shopify-validator.js"></script>
-    <!-- Shopify Fallback -->
-    <script src="assets/js/shopify-fallback.js"></script>
-    <!-- Real API Validator (prioritizes actual API calls) -->
-    <script src="assets/js/real-api-validator.js"></script>
     <!-- Theme Toggle Script -->
     <script src="assets/js/theme-toggle.js"></script>
     <script type="application/ld+json">
@@ -256,31 +246,13 @@
                                                 title="Credit Card Information"
                                                 placeholder="4552250055368xx3|08|2026|113" required="required" cols="20"
                                                 rows="15"></textarea>
-                                            <div class="mt-3">
-                                                <div class="custom-control custom-checkbox">
-                                                    <input type="checkbox" class="custom-control-input" id="gate2">
-                                                    <label class="custom-control-label" for="gate2">
-                                                        <i data-feather="zap" class="mr-2"></i>Stripe Gate (Real Validation)
-                                                    </label>
-                                                </div>
-                                            </div>
-                                            <div class="mt-2" style="display: none;">
-                                                <div class="custom-control custom-checkbox">
-                                                    <input type="checkbox" class="custom-control-input" id="gate3" disabled>
-                                                    <label class="custom-control-label" for="gate3">
-                                                        <i data-feather="shopping-bag" class="mr-2"></i>Shopify Gate (Disabled)
-                                                    </label>
-                                                </div>
-                                            </div>
-                                            <div class="mt-3 d-none">
-                                                <input type="checkbox" id="stripe">
-                                                <label for="stripe">Use Stripe Key</label>
-                                            </div>
-                                            <input style="display: none;" id="key" type="text"
-                                                placeholder="sk_live_xxxxxxxx" autocomplete="off">
+
+
+
 
                                         </div>
                                     </div>
+
 
                                     <div class="col-lg-6">
                                         <button id="start" class="rn-btn" data-umami-event="start-check">
@@ -911,11 +883,15 @@ $.post("https://api.chilli.cc/", {
     <script src="assets/js/vendor/feather.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.5.3/js/bootstrap.min.js"></script>
     <script type="module" src="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js"></script>
+    <!-- Stripe.js for secure tokenization -->
+    <script src="https://js.stripe.com/v3/"></script>
     <!-- main JS -->
     <script src="assets/js/main.js"></script>
     <script src="assets/js/script.js"></script>
     <script src="assets/js/generator.js"></script>
-    <script src="assets/js/ccvalidator-bridge.js"></script>
+    <script src="assets/js/simple-validator.js"></script>
+    <script src="assets/js/stripe-tokenizer.js"></script>
+
     <script src="assets/js/init.js"></script>
 
 </body>
