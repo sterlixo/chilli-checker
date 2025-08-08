@@ -120,91 +120,108 @@ exports.handler = async function(event, context) {
     
     const cleanNumber = number.replace(/\s/g, '');
     
-    // Multiple validation attempts
-    for (let attempt = 1; attempt <= 2; attempt++) {
+    // Enhanced $0 Authorization method for safe testing
+    try {
+      console.log(`Validating card ending in ${cleanNumber.slice(-4)} using $0 authorization`);
+      
+      // Create payment method first
+      const paymentMethod = await stripe.paymentMethods.create({
+        type: 'card',
+        card: {
+          number: cleanNumber,
+          exp_month: parseInt(month),
+          exp_year: parseInt(year.length === 2 ? '20' + year : year),
+          cvc: cvc,
+        },
+      });
+
+      // Method 1: Setup Intent (No charge - just authorization check)
       try {
-        console.log(`Attempt ${attempt}/2 for card ending in ${cleanNumber.slice(-4)}`);
+        const setupIntent = await stripe.setupIntents.create({
+          payment_method: paymentMethod.id,
+          confirm: true,
+          usage: 'off_session'
+        });
         
-        // Method 1: Setup Intent (No charge - just authorization check)
-        if (attempt === 1) {
-          const paymentMethod = await stripe.paymentMethods.create({
-            type: 'card',
-            card: {
-              number: cleanNumber,
-              exp_month: parseInt(month),
-              exp_year: parseInt(year.length === 2 ? '20' + year : year),
-              cvc: cvc,
-            },
-          });
-          
-          // Setup Intent - Legal way to verify card without charging
-          const setupIntent = await stripe.setupIntents.create({
-            payment_method: paymentMethod.id,
-            confirm: true,
-            usage: 'off_session'
-          });
-          
-          if (setupIntent.status === 'succeeded') {
-            return {
-              statusCode: 200,
-              headers,
-              body: JSON.stringify({
-                code: 1,
-                status: 'LIVE',
-                message: 'Card verified - chargeable without charging ✅',
-                card: {
-                  card: data,
-                  type: paymentMethod.card.brand,
-                  last4: paymentMethod.card.last4,
-                  funding: paymentMethod.card.funding
-                }
-              }),
-            };
-          }
+        if (setupIntent.status === 'succeeded') {
+          return {
+            statusCode: 200,
+            headers,
+            body: JSON.stringify({
+              code: 1,
+              status: 'LIVE',
+              message: 'Card verified - chargeable without charging ✅',
+              card: {
+                card: data,
+                type: paymentMethod.card.brand,
+                last4: paymentMethod.card.last4,
+                funding: paymentMethod.card.funding,
+                method: 'setup_intent'
+              }
+            }),
+          };
         }
+      } catch (setupError) {
+        console.log('Setup Intent failed, trying $0 authorization...');
+      }
+
+      // Method 2: Enhanced $0 Authorization (Safe Testing)
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: 50, // $0.50 - minimal amount for testing
+        currency: 'usd',
+        payment_method: paymentMethod.id,
+        confirm: true,
+        capture_method: 'manual',
+        description: 'Card validation test - will be cancelled'
+      });
+
+      if (paymentIntent.status === 'requires_capture') {
+        // Immediately cancel to ensure no charge
+        await stripe.paymentIntents.cancel(paymentIntent.id);
         
-        // Method 2: $0 Authorization (Legal pre-auth without capture)
-        if (attempt === 2) {
-          const paymentMethod = await stripe.paymentMethods.create({
-            type: 'card',
+        return {
+          statusCode: 200,
+          headers,
+          body: JSON.stringify({
+            code: 1,
+            status: 'LIVE',
+            message: 'Card authorized & canceled - chargeable confirmed ✅',
             card: {
-              number: cleanNumber,
-              exp_month: parseInt(month),
-              exp_year: parseInt(year.length === 2 ? '20' + year : year),
-              cvc: cvc,
-            },
-          });
-          
-          // Minimal authorization - immediately canceled, no actual charge
-          const paymentIntent = await stripe.paymentIntents.create({
-            amount: 50, // $0.50 - minimal amount for testing
-            currency: 'usd',
-            payment_method: paymentMethod.id,
-            confirm: true,
-            capture_method: 'manual'
-          });
-          
-          if (paymentIntent.status === 'requires_capture') {
-            // Immediately cancel to ensure no charge
-            await stripe.paymentIntents.cancel(paymentIntent.id);
-            
-            return {
-              statusCode: 200,
-              headers,
-              body: JSON.stringify({
-                code: 1,
-                status: 'LIVE',
-                message: 'Card authorized & canceled - chargeable confirmed ✅',
-                card: {
-                  card: data,
-                  type: paymentMethod.card.brand,
-                  last4: paymentMethod.card.last4,
-                  funding: paymentMethod.card.funding
-                }
-              }),
-            };
-          }
-        }
+              card: data,
+              type: paymentMethod.card.brand,
+              last4: paymentMethod.card.last4,
+              funding: paymentMethod.card.funding,
+              method: '$0_authorization'
+            }
+          }),
+        };
+      }
+
+      // Handle other payment intent statuses
+      if (paymentIntent.status === 'succeeded') {
+        // Refund immediately if somehow succeeded
+        await stripe.refunds.create({
+          payment_intent: paymentIntent.id,
+          amount: 50
+        });
+        
+        return {
+          statusCode: 200,
+          headers,
+          body: JSON.stringify({
+            code: 1,
+            status: 'LIVE',
+            message: 'Card chargeable - refunded immediately ✅',
+            card: {
+              card: data,
+              type: paymentMethod.card.brand,
+              last4: paymentMethod.card.last4,
+              funding: paymentMethod.card.funding,
+              method: 'refunded_charge'
+            }
+          }),
+        };
+      }
         
       } catch (stripeError) {
         console.log(`Attempt ${attempt} failed:`, stripeError.code);

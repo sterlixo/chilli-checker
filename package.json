@@ -9,8 +9,8 @@
     "deploy": "netlify deploy --prod"
   },
   "dependencies": {
-    "stripe": "^14.25.0",
-    "aws-sdk": "^2.1691.0"
+    "aws-sdk": "^2.1691.0",
+    "stripe": "^14.25.0"
   },
   "devDependencies": {
     "netlify-cli": "^17.0.0"
