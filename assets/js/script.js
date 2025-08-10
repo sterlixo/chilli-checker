@@ -155,3 +155,91 @@ class CCValidator {
 
 // Make it globally available
 window.CCValidator = CCValidator;
+
+$(document).ready(function() {
+    let isProcessing = false;
+    const validator = new AdvancedCardValidator();
+
+    $('#start').click(function() {
+        if (isProcessing) return;
+
+        const cardData = $('#cc').val().trim();
+        if (!cardData) {
+            alert('Please enter card data');
+            return;
+        }
+
+        const cards = cardData.split('\n').filter(line => line.trim());
+        if (cards.length === 0) {
+            alert('No valid card data found');
+            return;
+        }
+
+        startValidation(cards);
+    });
+
+    $('#stop, #modal-stop').click(function() {
+        isProcessing = false;
+        $('#progress-modal').modal('hide');
+        $('#start').prop('disabled', false).show();
+        $('#stop').prop('disabled', true).hide();
+    });
+
+    async function startValidation(cards) {
+        isProcessing = true;
+        $('#start').prop('disabled', true).hide();
+        $('#stop').prop('disabled', false).show();
+        $('#progress-modal').modal('show');
+
+        // Clear results
+        $('#live .pricing-body').empty();
+        $('#die .pricing-body').empty();
+        $('#unknown .pricing-body').empty();
+        $('#live-tab span').text('0');
+        $('#die-tab span').text('0');
+        $('#unknown-tab span').text('0');
+
+        let processed = 0;
+        let liveCount = 0;
+        let dieCount = 0;
+        let unknownCount = 0;
+
+        for (let i = 0; i < cards.length && isProcessing; i++) {
+            const cardData = cards[i].trim();
+            if (!cardData) continue;
+
+            const result = validator.validateCard(cardData);
+            processed++;
+
+            const msg = `<div><b style="color:${result.status === 'LIVE' ? '#20b27c' : (result.status === 'DEAD' ? '#ff014f' : '#fce00c')}">${result.status}</b> | ${cardData} | ${result.card?.type || 'unknown'} | ${result.message}</div>`;
+
+            if (result.status === 'LIVE') {
+                liveCount++;
+                $('#live .pricing-body').append(msg);
+                $('#live-tab span').text(liveCount);
+            } else if (result.status === 'DEAD') {
+                dieCount++;
+                $('#die .pricing-body').append(msg);
+                $('#die-tab span').text(dieCount);
+            } else {
+                unknownCount++;
+                $('#unknown .pricing-body').append(msg);
+                $('#unknown-tab span').text(unknownCount);
+            }
+
+            const percentage = Math.floor((processed / cards.length) * 100);
+            $('.progress-bar').css('width', percentage + '%');
+            $('.percent-label').text(percentage + '%');
+            $('#live-count').text(liveCount);
+            $('#die-count').text(dieCount);
+            $('#unknown-count').text(unknownCount);
+
+            await new Promise(resolve => setTimeout(resolve, 50)); // Small delay for UI updates
+        }
+
+        isProcessing = false;
+        $('#progress-modal').modal('hide');
+        $('#start').prop('disabled', false).show();
+        $('#stop').prop('disabled', true).hide();
+    }
+});

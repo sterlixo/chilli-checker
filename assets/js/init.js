@@ -1,6 +1,11 @@
 // Initialize feather icons and gate controls
 $(document).ready(function() {
     feather.replace();
+
+    // Set Stripe gate to be checked by default
+    if ($('#gate2').length) {
+        $('#gate2').prop('checked', true).trigger('change');
+    }
     
     // Add visual feedback for Gate2 (Stripe) checkbox
     $('#gate2').on('change', function() {

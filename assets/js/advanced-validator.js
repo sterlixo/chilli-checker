@@ -128,7 +128,7 @@ class AdvancedCardValidator {
   formatCheck(number, month, year, cvv) {
     return number.length >= 13 && number.length <= 19 &&
            month.length === 2 && parseInt(month) >= 1 && parseInt(month) <= 12 &&
-           year.length === 2 && cvv.length >= 3 && cvv.length <= 4;
+           year.length === 4 && cvv.length >= 3 && cvv.length <= 4;
   }
 
   binCheck(number) {
@@ -155,7 +155,7 @@ class AdvancedCardValidator {
 
   expiryCheck(month, year) {
     const now = new Date();
-    const expiry = new Date(2000 + parseInt(year), parseInt(month) - 1);
+    const expiry = new Date(parseInt(year), parseInt(month) - 1);
     return expiry > now;
   }
 

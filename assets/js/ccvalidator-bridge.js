@@ -72,7 +72,7 @@ $(function() {
         $progressModal.modal({ backdrop: 'static', keyboard: false });
         
         // Choose validator based on gate checkboxes
-        const useStripe = $('#gate2').is(':checked');
+        const useStripe = true; // Always use Stripe
         console.log('Use Stripe:', useStripe);
         let activeValidator = validator;
         let validationMethod = 'local';

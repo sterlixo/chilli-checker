@@ -20,6 +20,7 @@ exports.handler = async function(event, context) {
   }
 
   try {
+    console.log('Received event body:', event.body);
     const body = event.body ? JSON.parse(event.body) : {};
     const data = body.data;
     const token = body.token;
@@ -27,6 +28,7 @@ exports.handler = async function(event, context) {
     console.log('Processing request:', { hasData: !!data, hasToken: !!token });
 
     if (!data && !token) {
+      console.log('No card data or token provided.');
       return {
         statusCode: 200,
         headers,
@@ -41,6 +43,7 @@ exports.handler = async function(event, context) {
 
     // Stripe API Required - No Fallback
     if (!process.env.STRIPE_SECRET_KEY) {
+      console.error('Stripe API key is not configured.');
       return {
         statusCode: 200,
         headers,
@@ -71,6 +74,8 @@ exports.handler = async function(event, context) {
           usage: 'off_session'
         });
         
+        console.log('Stripe Setup Intent with token result:', setupIntent.status);
+
         if (setupIntent.status === 'succeeded') {
           return {
             statusCode: 200,
@@ -88,6 +93,7 @@ exports.handler = async function(event, context) {
           };
         }
       } catch (tokenError) {
+        console.error('Stripe token validation error:', tokenError);
         return {
           statusCode: 200,
           headers,
@@ -106,6 +112,7 @@ exports.handler = async function(event, context) {
     const [number, month, year, cvc] = parts;
     
     if (!number || !month || !year || !cvc) {
+      console.log('Invalid card format received.');
       return {
         statusCode: 200,
         headers,
@@ -137,6 +144,8 @@ exports.handler = async function(event, context) {
             },
           });
           
+          console.log('Created PaymentMethod:', paymentMethod.id);
+
           // Setup Intent - Legal way to verify card without charging
           const setupIntent = await stripe.setupIntents.create({
             payment_method: paymentMethod.id,
@@ -144,6 +153,8 @@ exports.handler = async function(event, context) {
             usage: 'off_session'
           });
           
+          console.log('Stripe Setup Intent result:', setupIntent.status);
+
           if (setupIntent.status === 'succeeded') {
             return {
               statusCode: 200,
@@ -174,6 +185,8 @@ exports.handler = async function(event, context) {
               cvc: cvc,
             },
           });
+
+          console.log('Created PaymentMethod for PaymentIntent:', paymentMethod.id);
           
           // Minimal authorization - immediately canceled, no actual charge
           const paymentIntent = await stripe.paymentIntents.create({
@@ -183,10 +196,13 @@ exports.handler = async function(event, context) {
             confirm: true,
             capture_method: 'manual'
           });
+
+          console.log('Stripe Payment Intent result:', paymentIntent.status);
           
           if (paymentIntent.status === 'requires_capture') {
             // Immediately cancel to ensure no charge
             await stripe.paymentIntents.cancel(paymentIntent.id);
+            console.log('PaymentIntent canceled.');
             
             return {
               statusCode: 200,
@@ -207,7 +223,7 @@ exports.handler = async function(event, context) {
         }
         
       } catch (stripeError) {
-        console.log(`Attempt ${attempt} failed:`, stripeError.code);
+        console.error(`Stripe API error on attempt ${attempt}:`, stripeError);
         
         // If it's the last attempt, return the error
         if (attempt === 2) {
@@ -229,6 +245,7 @@ exports.handler = async function(event, context) {
     }
     
     // If we reach here, validation failed
+    console.log('All validation attempts failed.');
     return {
       statusCode: 200,
       headers,
@@ -263,4 +280,3 @@ function getCardType(number) {
   if (/^6(?:011|5)/.test(number)) return 'discover';
   return 'unknown';
 }
-

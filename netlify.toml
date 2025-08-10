@@ -17,7 +17,7 @@
 
 # Environment variables for development
 [context.dev.environment]
-  STRIPE_SECRET_KEY = "sk_test_51OaKZTKqZ8QjQX0X1234567890abcdefghijklmnopqrstuvwxyz"
+  STRIPE_SECRET_KEY = "sk_test_51RsaBfACXAfuiFKxkH792ECzKthhbWH9VFxtDr2HOaqke0FVXlfMe9y8GeWJFREhwQ71ktQ9pmb1AXh3zBG2VkgN00ciKXWywd"
   PAYPAL_CLIENT_ID = "test_paypal_client_id"
   PAYPAL_CLIENT_SECRET = "test_paypal_client_secret"
   NODE_ENV = "development"
